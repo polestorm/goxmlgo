@@ -2,7 +2,7 @@
 
 All release tags of this repository are signed (`git tag -s`); check one with `git tag -v vX.Y.Z`.
 
-## Unreleased (to be v0.2.0)
+## v0.2.0 (2026-11-26)
 
 Additions to the reader; a program written for v0.1.0 compiles and behaves as before.
 
@@ -20,7 +20,9 @@ Additions to the reader; a program written for v0.1.0 compiles and behaves as be
   where a read ended. See `docs/differences.md`.
 - The reader is about 20% faster than in v0.1.0 (`docs/results/reader-vs-goxsdgo.txt`).
 
-## Unreleased (to be v0.1.0)
+## v0.1.0 (2026-11-26)
+
+Tagged on commit `0648973`, where this file still says "Unreleased".
 
 The XML reader moves here from goxsdgo.
 

@@ -58,7 +58,7 @@ kolumnę „Stan” w `docs/roadmap.md`.
   się od potwierdzenia swoich wymagań;
 - najpierw test (przypadek W3C, plik korpusu albo przypadek z wymagania), potem kod; liczba zaliczonych przypadków
   W3C nie spada między commitami bez wpisu, dlaczego;
-- repozytorium `github.com/polestorm/goxmlgo` (publiczne, do założenia; tagi wydań podpisane); commit i push tylko na prośbę właściciela.
+- repozytorium `github.com/polestorm/goxmlgo` (publiczne od 2026-11-26; tagi wydań podpisane); commit i push tylko na prośbę właściciela.
 
 Zasady:
 - **czysty rodowód** (`docs/provenance.md`): piszemy z rekomendacji W3C. Nie czytaj, nie kopiuj i nie przenoś kodu
