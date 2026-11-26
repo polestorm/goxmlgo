@@ -1,0 +1,39 @@
+2:1 comment " REQ: XML-010 XML-011 XML-012 XML-018. Podzbi\u00f3r wewn\u0119trzny: encje, warto\u015bci domy\u015blne i typy atrybut\u00f3w, notacja. "
+3:1 doctype "list"
+  notation "png" public="" system="image/png"
+20:1 start {}"list" end=20:7
+20:7 text "\n  " whitespace
+21:3 start {}"entry" end=21:18
+  ns "x"="urn:example:default-ns"
+  attr {}"id"="e1" type=ID 21:10
+  attr {}"kind"="a" type=ENUMERATION default 21:3
+  attr {}"note"="domy\u015blna Przyk\u0142adowa Sp\u00f3\u0142ka" type=CDATA default 21:3
+21:18 text "Przyk\u0142adowa Sp\u00f3\u0142ka"
+21:25 end {}"entry"
+21:33 text "\n  " whitespace
+22:3 start {}"entry" end=22:84
+  ns "x"="urn:example:default-ns"
+  attr {}"id"="e2" type=ID 22:10
+  attr {}"ref"="e1" type=IDREF 22:18
+  attr {}"kind"="b" type=ENUMERATION 22:27
+  attr {}"tokens"="jeden dwa" type=NMTOKENS 22:36
+  attr {}"img"="logo" type=ENTITY 22:61
+  attr {urn:example:default-ns}"x:extra"="1" 22:72
+  attr {}"note"="domy\u015blna Przyk\u0142adowa Sp\u00f3\u0142ka" type=CDATA default 22:3
+22:84 text "Przyk\u0142adowa Sp\u00f3\u0142ka "
+22:84 start {}"em" end=22:84
+22:84 text "z o.o."
+22:84 end {}"em"
+22:91 text " i tekst"
+22:99 end {}"entry"
+22:107 text "\n  " whitespace
+23:3 start {}"entry" end=23:32
+  ns "x"="urn:example:default-ns"
+  attr {}"id"="e3" type=ID 23:10
+  attr {}"note"="w\u0142asna" type=CDATA 23:18
+  attr {}"kind"="a" type=ENUMERATION default 23:3
+23:32 text "po <em>"
+23:45 end {}"entry"
+23:53 text "\n" whitespace
+24:1 end {}"list"
+eof

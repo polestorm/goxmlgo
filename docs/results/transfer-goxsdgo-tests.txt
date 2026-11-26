@@ -1,0 +1,152 @@
+# Transfer proof 4 (docs/migration.md): the tests of goxsdgo with the reader imported from goxmlgo.
+# date: 2026-11-26
+# goxsdgo: 698affa (git archive, clean), test data as fetched by its tools/fetch
+# goxmlgo: working tree before the first commit
+# go version go1.26.6 darwin/arm64
+#
+# baseline: go test -count=1 -v ./...   in the exported tree, unchanged
+# switched: the same after replacing, in every file that had them (listed below), the imports
+#   github.com/polestorm/goxsdgo/xmlreader         -> github.com/polestorm/goxmlgo/xmlreader
+#   github.com/polestorm/goxsdgo/internal/xmlchars -> github.com/polestorm/goxmlgo/xmlchars
+# and adding to go.mod:  require github.com/polestorm/goxmlgo v0.0.0  +  replace ... => <this repository>
+# No other change. The packages goxsdgo/xmlreader and goxsdgo/internal/xmlchars stay in the tree and their own
+# tests still run, but nothing imports them any more (the old reader's chars.go and example were switched too).
+# tools/compare is a separate module of goxsdgo (cgo, libxml2); its file was switched but the module was not built.
+#
+# Result: the sorted lists of "--- PASS/FAIL/SKIP" lines of both runs are identical (timings removed), and so are
+# all lines with counts. Below: files switched, package results, counts, count lines of the switched run.
+
+## files switched
+internal/validate/identity.go
+tools/compare/private.go
+internal/datatypes/types.go
+internal/validate/validate.go
+internal/datatypes/lexical.go
+internal/schema/sfs.go
+internal/regex/names5.go
+internal/schema/load.go
+xsd/corpus_bench_test.go
+internal/regex/regex.go
+internal/schema/dom.go
+xsd/xsd.go
+xmlreader/example_test.go
+xmlreader/chars.go
+
+## baseline: packages
+ok  	github.com/polestorm/goxsdgo/internal/datatypes
+ok  	github.com/polestorm/goxsdgo/internal/regex
+ok  	github.com/polestorm/goxsdgo/internal/schema
+ok  	github.com/polestorm/goxsdgo/internal/testkit
+?   	github.com/polestorm/goxsdgo/internal/validate	[no test files]
+ok  	github.com/polestorm/goxsdgo/internal/w3c
+ok  	github.com/polestorm/goxsdgo/internal/xmlchars
+ok  	github.com/polestorm/goxsdgo/xmlreader
+ok  	github.com/polestorm/goxsdgo/xsd
+ok  	github.com/polestorm/goxsdgo/xsd/resolve
+tests: PASS 1355, FAIL 0, SKIP 1
+
+## switched: packages
+ok  	github.com/polestorm/goxsdgo/internal/datatypes
+ok  	github.com/polestorm/goxsdgo/internal/regex
+ok  	github.com/polestorm/goxsdgo/internal/schema
+ok  	github.com/polestorm/goxsdgo/internal/testkit
+?   	github.com/polestorm/goxsdgo/internal/validate	[no test files]
+ok  	github.com/polestorm/goxsdgo/internal/w3c
+ok  	github.com/polestorm/goxsdgo/internal/xmlchars
+ok  	github.com/polestorm/goxsdgo/xmlreader
+ok  	github.com/polestorm/goxsdgo/xsd
+ok  	github.com/polestorm/goxsdgo/xsd/resolve
+tests: PASS 1355, FAIL 0, SKIP 1
+
+## switched: lines with counts (identical in the baseline run)
+w3c_test.go:638: NIST datatypes (adapter, stage 2): passed 22678 / read 22678 / in scope 23170
+atomic-ID                    passed     0 / read     0 / in scope   246
+atomic-NCName                passed   246 / read   246 / in scope   246
+atomic-NMTOKEN               passed   246 / read   246 / in scope   246
+atomic-Name                  passed   246 / read   246 / in scope   246
+atomic-QName                 passed   156 / read   156 / in scope   156
+atomic-anyURI                passed   306 / read   306 / in scope   306
+atomic-base64Binary          passed   156 / read   156 / in scope   156
+atomic-boolean               passed    60 / read    60 / in scope    60
+atomic-byte                  passed   378 / read   378 / in scope   378
+atomic-date                  passed   342 / read   342 / in scope   342
+atomic-dateTime              passed   342 / read   342 / in scope   342
+atomic-decimal               passed   462 / read   462 / in scope   462
+atomic-double                passed   136 / read   136 / in scope   136
+atomic-duration              passed   342 / read   342 / in scope   342
+atomic-float                 passed   136 / read   136 / in scope   136
+atomic-gDay                  passed   328 / read   328 / in scope   328
+atomic-gMonth                passed   334 / read   334 / in scope   334
+atomic-gMonthDay             passed   342 / read   342 / in scope   342
+atomic-gYear                 passed   342 / read   342 / in scope   342
+atomic-gYearMonth            passed   342 / read   342 / in scope   342
+atomic-hexBinary             passed   156 / read   156 / in scope   156
+atomic-int                   passed   408 / read   408 / in scope   408
+atomic-integer               passed   408 / read   408 / in scope   408
+atomic-language              passed   240 / read   240 / in scope   240
+atomic-long                  passed   408 / read   408 / in scope   408
+atomic-negativeInteger       passed   408 / read   408 / in scope   408
+atomic-nonNegativeInteger    passed   408 / read   408 / in scope   408
+atomic-nonPositiveInteger    passed   408 / read   408 / in scope   408
+atomic-normalizedString      passed   252 / read   252 / in scope   252
+atomic-positiveInteger       passed   408 / read   408 / in scope   408
+atomic-short                 passed   402 / read   402 / in scope   402
+atomic-string                passed   258 / read   258 / in scope   258
+atomic-time                  passed   342 / read   342 / in scope   342
+atomic-token                 passed   246 / read   246 / in scope   246
+atomic-unsignedByte          passed   378 / read   378 / in scope   378
+atomic-unsignedInt           passed   408 / read   408 / in scope   408
+atomic-unsignedLong          passed   408 / read   408 / in scope   408
+atomic-unsignedShort         passed   402 / read   402 / in scope   402
+list-ID                      passed     0 / read     0 / in scope   246
+list-NCName                  passed   246 / read   246 / in scope   246
+list-NMTOKEN                 passed   246 / read   246 / in scope   246
+list-NMTOKENS                passed   246 / read   246 / in scope   246
+list-Name                    passed   246 / read   246 / in scope   246
+list-QName                   passed   246 / read   246 / in scope   246
+list-anyURI                  passed   306 / read   306 / in scope   306
+list-base64Binary            passed   156 / read   156 / in scope   156
+list-boolean                 passed   126 / read   126 / in scope   126
+list-byte                    passed   306 / read   306 / in scope   306
+list-date                    passed   306 / read   306 / in scope   306
+list-dateTime                passed   306 / read   306 / in scope   306
+list-decimal                 passed   306 / read   306 / in scope   306
+list-double                  passed   306 / read   306 / in scope   306
+list-duration                passed   306 / read   306 / in scope   306
+list-float                   passed   306 / read   306 / in scope   306
+list-gDay                    passed   306 / read   306 / in scope   306
+list-gMonth                  passed   306 / read   306 / in scope   306
+list-gMonthDay               passed   306 / read   306 / in scope   306
+list-gYear                   passed   306 / read   306 / in scope   306
+list-gYearMonth              passed   306 / read   306 / in scope   306
+list-hexBinary               passed   156 / read   156 / in scope   156
+list-int                     passed   306 / read   306 / in scope   306
+list-integer                 passed   306 / read   306 / in scope   306
+list-language                passed   246 / read   246 / in scope   246
+list-long                    passed   306 / read   306 / in scope   306
+list-negativeInteger         passed   306 / read   306 / in scope   306
+list-nonNegativeInteger      passed   306 / read   306 / in scope   306
+list-nonPositiveInteger      passed   306 / read   306 / in scope   306
+list-normalizedString        passed   246 / read   246 / in scope   246
+list-positiveInteger         passed   306 / read   306 / in scope   306
+list-short                   passed   306 / read   306 / in scope   306
+list-string                  passed   246 / read   246 / in scope   246
+list-time                    passed   306 / read   306 / in scope   306
+list-token                   passed   246 / read   246 / in scope   246
+list-unsignedByte            passed   306 / read   306 / in scope   306
+list-unsignedInt             passed   306 / read   306 / in scope   306
+list-unsignedLong            passed   306 / read   306 / in scope   306
+list-unsignedShort           passed   306 / read   306 / in scope   306
+union-anyURI                 passed   120 / read   120 / in scope   120
+union-duration               passed   120 / read   120 / in scope   120
+union-gMonthDay              passed   120 / read   120 / in scope   120
+union-short                  passed   120 / read   120 / in scope   120
+w3c_test.go:638: Microsoft datatypes (adapter, stage 2): passed 2801 / read 2818 / in scope 7428
+MS-DataTypes2006-07-15       passed    29 / read    29 / in scope  3430
+MS-Regex2006-07-15           passed  2772 / read  2789 / in scope  3998
+suite_test.go:127: 41735 cases, in scope: 14384 schema tests, 25055 instance tests
+W3C XML Conformance: passed/in scope
+well-formed   776 cases: xmlreader  774, encoding/xml  712
+not-wf        951 cases: xmlreader  951, encoding/xml  434
+all          1727 cases: xmlreader 1725, encoding/xml 1146
+W3C XSD 1.0 2e: passed/in scope

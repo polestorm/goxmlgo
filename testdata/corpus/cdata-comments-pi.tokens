@@ -1,0 +1,22 @@
+2:1 comment " REQ: XML-009. Komentarz przed korzeniem "
+3:1 pi "przed-korzeniem" "dane instrukcji "
+4:1 start {}"doc" end=4:6
+4:6 text "\n  " whitespace
+5:3 text "<nie-znacznik> & nie-encja ]] > " cdata
+5:47 text "" cdata whitespace
+5:59 text "\n  " whitespace
+6:3 comment " komentarz z - my\u015blnikami i <znacznikiem> "
+6:52 text "\n  " whitespace
+7:3 pi "cel" ""
+7:10 pi "cel" "z danymi i ?znakiem zapytania"
+7:49 text "\n  " whitespace
+8:3 start {}"code" end=8:9
+8:9 text "if (a < b) "
+8:23 text "{ return a && b; }" cdata
+8:53 text " koniec"
+8:60 end {}"code"
+8:67 text "\n" whitespace
+9:1 end {}"doc"
+10:1 comment " komentarz po korzeniu "
+11:1 pi "po-korzeniu" ""
+eof

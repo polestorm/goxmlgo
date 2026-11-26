@@ -1,0 +1,76 @@
+2:1 comment " REQ: XML-006 XML-013. Rysunek w stylu SVG, napisany od zera. "
+3:1 start {urn:example:svg}"svg" end=3:107
+  ns ""="urn:example:svg"
+  ns "xlink"="urn:example:xlink"
+  attr {}"width"="120" 3:62
+  attr {}"height"="80" 3:74
+  attr {}"viewBox"="0 0 120 80" 3:86
+3:107 text "\n  " whitespace
+4:3 start {urn:example:svg}"title" end=4:10
+4:10 text "Przyk\u0142ad"
+4:18 end {urn:example:svg}"title"
+4:26 text "\n  " whitespace
+5:3 start {urn:example:svg}"defs" end=5:9
+5:9 text "\n    " whitespace
+6:5 start {urn:example:svg}"linearGradient" end=6:57
+  attr {}"id"="g1" 6:21
+  attr {}"x1"="0" 6:29
+  attr {}"y1"="0" 6:36
+  attr {}"x2"="1" 6:43
+  attr {}"y2"="0" 6:50
+6:57 start {urn:example:svg}"stop" end=6:93 selfclosing
+  attr {}"offset"="0" 6:63
+  attr {}"stop-color"="#fff" 6:74
+6:57 end {urn:example:svg}"stop"
+6:93 start {urn:example:svg}"stop" end=6:129 selfclosing
+  attr {}"offset"="1" 6:99
+  attr {}"stop-color"="#369" 6:110
+6:93 end {urn:example:svg}"stop"
+6:129 end {urn:example:svg}"linearGradient"
+6:146 text "\n    " whitespace
+7:5 start {urn:example:svg}"style" end=7:28
+  attr {}"type"="text/css" 7:12
+7:28 text " .a > .b { fill: url(#g1); } " cdata
+7:69 end {urn:example:svg}"style"
+7:77 text "\n  " whitespace
+8:3 end {urn:example:svg}"defs"
+8:10 text "\n  " whitespace
+9:3 start {urn:example:svg}"g" end=9:45
+  attr {}"transform"="translate(10,10)" 9:6
+  attr {}"class"="a" 9:35
+9:45 text "\n    " whitespace
+10:5 start {urn:example:svg}"rect" end=10:65 selfclosing
+  attr {}"class"="b" 10:11
+  attr {}"x"="0" 10:21
+  attr {}"y"="0" 10:27
+  attr {}"width"="100" 10:33
+  attr {}"height"="60" 10:45
+  attr {}"rx"="4" 10:57
+10:5 end {urn:example:svg}"rect"
+10:65 text "\n    " whitespace
+11:5 start {urn:example:svg}"path" end=13:52 selfclosing
+  attr {}"d"="M 10 10              L 90 10              L 50 50 Z" 11:11
+  attr {}"fill"="none" 13:25
+  attr {}"stroke"="#000" 13:37
+11:5 end {urn:example:svg}"path"
+13:52 text "\n    " whitespace
+14:5 start {urn:example:svg}"use" end=14:28 selfclosing
+  attr {urn:example:xlink}"xlink:href"="#g1" 14:10
+14:5 end {urn:example:svg}"use"
+14:28 text "\n    " whitespace
+15:5 start {urn:example:svg}"text" end=15:46
+  attr {}"x"="50" 15:11
+  attr {}"y"="35" 15:18
+  attr {}"text-anchor"="middle" 15:25
+15:46 text "\u017b\u00f3\u0142w "
+15:51 start {urn:example:svg}"tspan" end=15:77
+  attr {}"font-weight"="bold" 15:58
+15:77 text "&"
+15:82 end {urn:example:svg}"tspan"
+15:90 text " g\u0119\u015b"
+15:94 end {urn:example:svg}"text"
+15:101 text "\n  " whitespace
+16:3 end {urn:example:svg}"g"
+16:7 text "\n" whitespace
+17:1 end {urn:example:svg}"svg"
+eof

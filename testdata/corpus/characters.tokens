@@ -1,0 +1,22 @@
+2:1 comment " REQ: XML-005 XML-007 XML-008. Odwo\u0142ania znakowe, encje wbudowane, znaki spoza BMP, polskie litery w nazwach,\n     znaki TAB, LF, CR w warto\u015bciach atrybut\u00f3w (dos\u0142owne i jako odwo\u0142ania). "
+4:1 start {}"zam\u00f3wienie" end=5:4
+  attr {}"numer"="ZAM/7" 4:13
+  attr {}"opis"="a\tb\nc\rd" 4:27
+  attr {}"dos\u0142owne"="x y z" 4:53
+5:4 text "\n  " whitespace
+6:3 start {}"pozycja" end=6:40
+  attr {}"ilo\u015b\u0107"="2" 6:12
+  attr {}"cena-jedn"="10,50" 6:22
+6:40 text "\u017b\u00f3\u0142ta g\u0119\u015b & ja\u017a\u0144 <tanio> \"cudzys\u0142\u00f3w\" 'apostrof'"
+6:117 end {}"pozycja"
+6:127 text "\n  " whitespace
+7:3 start {}"znaki" end=7:10
+7:10 text "\u017c\u00f3\u0142w \U0001f600 \U0001f680 \u4e2d\u6587 \rkoniec"
+7:58 end {}"znaki"
+7:66 text "\n  " whitespace
+8:3 start {}"\u0142\u0105ka" end=8:23 selfclosing
+  attr {}"\u017ad\u017ab\u0142o"="\u00df\u2192\u221e" 8:9
+8:3 end {}"\u0142\u0105ka"
+8:23 text "\n" whitespace
+9:1 end {}"zam\u00f3wienie"
+eof

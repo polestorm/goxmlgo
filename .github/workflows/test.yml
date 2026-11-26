@@ -1,0 +1,73 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.22", "stable"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        exclude:
+          # konsolidator Go 1.22 tworzy programy bez LC_UUID, których nowy macOS nie uruchamia
+          - go: "1.22"
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+      # dane testowe: pobierane według manifestu (adres, sumy, liczba plików), w pamięci podręcznej według jego sumy
+      - uses: actions/cache@v4
+        with:
+          path: testdata/w3c/xmlconf
+          key: testdata-${{ hashFiles('testdata/sources.json') }}
+          enableCrossOsArchive: true
+      - name: fetch test data
+        run: go -C tools/fetch run . -root ../..
+      - name: test data present (a skipped conformance test is not a pass)
+        shell: bash
+        run: test -f testdata/w3c/xmlconf/xmlconf.xml
+      - name: gofmt
+        if: matrix.os == 'ubuntu-latest'
+        run: test -z "$(gofmt -l .)"
+      - name: no dependencies in the library module
+        if: matrix.os == 'ubuntu-latest'
+        run: "! grep -q '^require' go.mod"
+      - name: no cgo in the library
+        if: matrix.os == 'ubuntu-latest'
+        run: CGO_ENABLED=0 go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+      - name: tools
+        shell: bash
+        run: |
+          for tool in fetch fuzz; do
+            go -C tools/$tool vet ./...
+            go -C tools/$tool test ./...
+          done
+      - name: race detector
+        if: matrix.os == 'ubuntu-latest' && matrix.go == 'stable'
+        run: go test -race ./...
+
+  # wersja narzędzia pobierającego w Pythonie (tools/fetch/fetch.py) dla osób bez Go
+  fetch-python:
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.x"]
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest discover -s tools/fetch -v

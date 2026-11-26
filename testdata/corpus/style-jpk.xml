@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- REQ: XML-006 XML-013. Wiersze w stylu JPK, dane wymyślone. -->
+<tns:JPK xmlns:tns="urn:example:jpk" xmlns:etd="urn:example:types" xmlns:xsi="urn:example:xsi">
+  <tns:Naglowek>
+    <tns:KodFormularza kodSystemowy="JPK_EXAMPLE (1)" wersjaSchemy="1-0">JPK_EXAMPLE</tns:KodFormularza>
+    <tns:DataWytworzeniaJPK>2026-01-31T12:00:00</tns:DataWytworzeniaJPK>
+  </tns:Naglowek>
+  <tns:Podmiot1><etd:NIP>0000000000</etd:NIP><etd:PelnaNazwa>Przykład „Żółw” sp. z o.o.</etd:PelnaNazwa></tns:Podmiot1>
+  <tns:SprzedazWiersz><tns:LpSprzedazy>1</tns:LpSprzedazy><tns:NrKontrahenta xsi:nil="true"/><tns:K_19>100.00</tns:K_19><tns:K_20>23.00</tns:K_20></tns:SprzedazWiersz>
+  <tns:SprzedazWiersz><tns:LpSprzedazy>2</tns:LpSprzedazy><tns:NrKontrahenta>1111111111</tns:NrKontrahenta><tns:K_19>-50.00</tns:K_19><tns:K_20>-11.50</tns:K_20></tns:SprzedazWiersz>
+  <tns:SprzedazCtrl><tns:LiczbaWierszySprzedazy>2</tns:LiczbaWierszySprzedazy><tns:PodatekNalezny>11.50</tns:PodatekNalezny></tns:SprzedazCtrl>
+</tns:JPK>

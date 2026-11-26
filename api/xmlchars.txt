@@ -1,0 +1,23 @@
+package github.com/polestorm/goxmlgo/xmlchars
+
+const (
+	Edition2 Edition = iota
+
+	Edition5
+)
+
+var NameCharExtra5 = [][2]rune{
+	{'-', '.'}, {'0', '9'}, {0xB7, 0xB7}, {0x300, 0x36F}, {0x203F, 0x2040},
+}
+
+var NameStart5 = [][2]rune{
+	{':', ':'}, {'A', 'Z'}, {'_', '_'}, {'a', 'z'},
+	{0xC0, 0xD6}, {0xD8, 0xF6}, {0xF8, 0x2FF}, {0x370, 0x37D}, {0x37F, 0x1FFF}, {0x200C, 0x200D},
+	{0x2070, 0x218F}, {0x2C00, 0x2FEF}, {0x3001, 0xD7FF}, {0xF900, 0xFDCF}, {0xFDF0, 0xFFFD}, {0x10000, 0xEFFFF},
+}
+
+type Edition uint8
+
+func IsNameChar5(r rune) bool
+
+func IsNameStart5(r rune) bool

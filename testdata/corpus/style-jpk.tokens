@@ -1,0 +1,70 @@
+2:1 comment " REQ: XML-006 XML-013. Wiersze w stylu JPK, dane wymy\u015blone. "
+3:1 start {urn:example:jpk}"tns:JPK" end=3:96
+  ns "tns"="urn:example:jpk"
+  ns "etd"="urn:example:types"
+  ns "xsi"="urn:example:xsi"
+3:96 text "\n  " whitespace
+4:3 start {urn:example:jpk}"tns:Naglowek" end=4:17
+4:17 text "\n    " whitespace
+5:5 start {urn:example:jpk}"tns:KodFormularza" end=5:74
+  attr {}"kodSystemowy"="JPK_EXAMPLE (1)" 5:24
+  attr {}"wersjaSchemy"="1-0" 5:55
+5:74 text "JPK_EXAMPLE"
+5:85 end {urn:example:jpk}"tns:KodFormularza"
+5:105 text "\n    " whitespace
+6:5 start {urn:example:jpk}"tns:DataWytworzeniaJPK" end=6:29
+6:29 text "2026-01-31T12:00:00"
+6:48 end {urn:example:jpk}"tns:DataWytworzeniaJPK"
+6:73 text "\n  " whitespace
+7:3 end {urn:example:jpk}"tns:Naglowek"
+7:18 text "\n  " whitespace
+8:3 start {urn:example:jpk}"tns:Podmiot1" end=8:17
+8:17 start {urn:example:types}"etd:NIP" end=8:26
+8:26 text "0000000000"
+8:36 end {urn:example:types}"etd:NIP"
+8:46 start {urn:example:types}"etd:PelnaNazwa" end=8:62
+8:62 text "Przyk\u0142ad \u201e\u017b\u00f3\u0142w\u201d sp. z o.o."
+8:88 end {urn:example:types}"etd:PelnaNazwa"
+8:105 end {urn:example:jpk}"tns:Podmiot1"
+8:120 text "\n  " whitespace
+9:3 start {urn:example:jpk}"tns:SprzedazWiersz" end=9:23
+9:23 start {urn:example:jpk}"tns:LpSprzedazy" end=9:40
+9:40 text "1"
+9:41 end {urn:example:jpk}"tns:LpSprzedazy"
+9:59 start {urn:example:jpk}"tns:NrKontrahenta" end=9:94 selfclosing
+  attr {urn:example:xsi}"xsi:nil"="true" 9:78
+9:59 end {urn:example:jpk}"tns:NrKontrahenta"
+9:94 start {urn:example:jpk}"tns:K_19" end=9:104
+9:104 text "100.00"
+9:110 end {urn:example:jpk}"tns:K_19"
+9:121 start {urn:example:jpk}"tns:K_20" end=9:131
+9:131 text "23.00"
+9:136 end {urn:example:jpk}"tns:K_20"
+9:147 end {urn:example:jpk}"tns:SprzedazWiersz"
+9:168 text "\n  " whitespace
+10:3 start {urn:example:jpk}"tns:SprzedazWiersz" end=10:23
+10:23 start {urn:example:jpk}"tns:LpSprzedazy" end=10:40
+10:40 text "2"
+10:41 end {urn:example:jpk}"tns:LpSprzedazy"
+10:59 start {urn:example:jpk}"tns:NrKontrahenta" end=10:78
+10:78 text "1111111111"
+10:88 end {urn:example:jpk}"tns:NrKontrahenta"
+10:108 start {urn:example:jpk}"tns:K_19" end=10:118
+10:118 text "-50.00"
+10:124 end {urn:example:jpk}"tns:K_19"
+10:135 start {urn:example:jpk}"tns:K_20" end=10:145
+10:145 text "-11.50"
+10:151 end {urn:example:jpk}"tns:K_20"
+10:162 end {urn:example:jpk}"tns:SprzedazWiersz"
+10:183 text "\n  " whitespace
+11:3 start {urn:example:jpk}"tns:SprzedazCtrl" end=11:21
+11:21 start {urn:example:jpk}"tns:LiczbaWierszySprzedazy" end=11:49
+11:49 text "2"
+11:50 end {urn:example:jpk}"tns:LiczbaWierszySprzedazy"
+11:79 start {urn:example:jpk}"tns:PodatekNalezny" end=11:99
+11:99 text "11.50"
+11:104 end {urn:example:jpk}"tns:PodatekNalezny"
+11:125 end {urn:example:jpk}"tns:SprzedazCtrl"
+11:144 text "\n" whitespace
+12:1 end {urn:example:jpk}"tns:JPK"
+eof

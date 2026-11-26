@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- REQ: XML-006 XML-013. Fragment w stylu WordprocessingML, napisany od zera: wiele atrybutów z prefiksem, mc:Ignorable. -->
+<w:document xmlns:w="urn:example:wordml" xmlns:mc="urn:example:compat" xmlns:w14="urn:example:wordml14" xmlns:r="urn:example:rels" mc:Ignorable="w14">
+  <w:body>
+    <w:p w14:paraId="0A1B2C3D" w14:textId="77777777" w:rsidR="00AB12CD" w:rsidRDefault="00AB12CD" w:rsidP="00EF3456">
+      <w:pPr><w:pStyle w:val="Nagwek1"/><w:jc w:val="center"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>Tytuł dokumentu</w:t></w:r>
+    </w:p>
+    <w:p>
+      <w:r><w:t xml:space="preserve">Tekst ze spacją na końcu </w:t></w:r>
+      <w:hyperlink r:id="rId5" w:history="1"><w:r><w:t>odsyłacz</w:t></w:r></w:hyperlink>
+      <mc:AlternateContent><mc:Choice Requires="w14"><w14:nowe/></mc:Choice><mc:Fallback><w:r><w:t>zastępczy</w:t></w:r></mc:Fallback></mc:AlternateContent>
+    </w:p>
+    <w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1417" w:bottom="1417" w:left="1417"/></w:sectPr>
+  </w:body>
+</w:document>

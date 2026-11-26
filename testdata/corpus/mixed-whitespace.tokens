@@ -1,0 +1,28 @@
+2:1 comment " REQ: XML-004. Tre\u015b\u0107 mieszana, same bia\u0142e znaki, CR LF i samo CR na wej\u015bciu, tabulatory. "
+3:1 start {}"text" end=3:7
+3:7 text "\n\tAkapit z "
+4:11 start {}"b" end=4:14
+4:14 text "pogrubieniem"
+4:26 end {}"b"
+4:30 text ", "
+4:32 start {}"i" end=4:35
+4:35 text "kursyw\u0105"
+4:42 end {}"i"
+4:46 text "\ti tabulatorem.\n  "
+5:3 start {}"empty" end=5:10
+5:10 text "   " whitespace
+5:13 end {}"empty"
+5:21 text "\n  " whitespace
+6:3 start {}"lines" end=6:10
+6:10 text "pierwszy\ndrugi\ntrzeci\nczwarty"
+9:8 end {}"lines"
+9:16 text "\n  " whitespace
+10:3 start {}"tail" end=10:9
+10:9 text "przed"
+10:14 start {}"br" end=10:19 selfclosing
+10:14 end {}"br"
+10:19 text "po"
+10:21 end {}"tail"
+10:28 text " koniec\n"
+11:1 end {}"text"
+eof

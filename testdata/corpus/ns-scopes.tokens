@@ -1,0 +1,54 @@
+2:1 comment " REQ: XML-013. Przestrzenie nazw: domy\u015blna, zmiana i wy\u0142\u0105czenie domy\u015blnej, ten sam prefiks dla r\u00f3\u017cnych\n     przestrzeni na r\u00f3\u017cnych poziomach, r\u00f3\u017cne prefiksy tej samej przestrzeni, atrybuty z prefiksem, xml:space, xml:lang. "
+4:1 start {urn:example:catalog}"catalog" end=4:104
+  ns ""="urn:example:catalog"
+  ns "a"="urn:example:one"
+  ns "b"="urn:example:one"
+  attr {http://www.w3.org/XML/1998/namespace}"xml:lang"="pl" 4:90
+4:104 text "\n  " whitespace
+5:3 start {urn:example:catalog}"item" end=5:39
+  attr {urn:example:one}"a:id"="1" 5:9
+  attr {urn:example:one}"b:code"="x" 5:18
+  attr {}"plain"="p" 5:29
+5:39 text "\n    " whitespace
+6:5 start {urn:example:one}"a:name" end=6:13
+6:13 text "pierwszy"
+6:21 end {urn:example:one}"a:name"
+6:30 text "\n    " whitespace
+7:5 start {urn:example:one}"b:name" end=7:13
+7:13 text "ten sam typ, inny prefiks"
+7:38 end {urn:example:one}"b:name"
+7:47 text "\n  " whitespace
+8:3 end {urn:example:catalog}"item"
+8:10 text "\n  " whitespace
+9:3 start {urn:example:group}"group" end=9:62
+  ns ""="urn:example:group"
+  ns "a"="urn:example:two"
+9:62 text "\n    " whitespace
+10:5 start {urn:example:two}"a:name" end=10:28
+  attr {urn:example:two}"a:kind"="inner" 10:13
+10:28 text "prefiks a oznacza tu inn\u0105 przestrze\u0144"
+10:64 end {urn:example:two}"a:name"
+10:73 text "\n    " whitespace
+11:5 start {}"note" end=11:41
+  ns ""=""
+  attr {http://www.w3.org/XML/1998/namespace}"xml:space"="preserve" 11:20
+11:41 text "  bez przestrzeni nazw  "
+11:65 end {}"note"
+11:72 text "\n    " whitespace
+12:5 start {urn:example:group}"deep" end=12:11
+12:11 start {urn:example:group}"deeper" end=12:45
+  ns "a"="urn:example:one"
+12:45 start {urn:example:one}"a:name" end=12:54 selfclosing
+12:45 end {urn:example:one}"a:name"
+12:54 end {urn:example:group}"deeper"
+12:63 end {urn:example:group}"deep"
+12:70 text "\n  " whitespace
+13:3 end {urn:example:group}"group"
+13:11 text "\n  " whitespace
+14:3 start {urn:example:one}"a:name" end=14:25
+  attr {http://www.w3.org/XML/1998/namespace}"xml:lang"="en" 14:11
+14:25 text "back to the first binding"
+14:50 end {urn:example:one}"a:name"
+14:59 text "\n" whitespace
+15:1 end {urn:example:catalog}"catalog"
+eof

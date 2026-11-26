@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- REQ: XML-010 XML-011 XML-012 XML-018. Podzbiór wewnętrzny: encje, wartości domyślne i typy atrybutów, notacja. -->
+<!DOCTYPE list [
+  <!ELEMENT list (entry*)>
+  <!ELEMENT entry (#PCDATA|em)*>
+  <!ELEMENT em (#PCDATA)>
+  <!ENTITY firma "Przykładowa Spółka">
+  <!ENTITY pełna "&firma; <em>z o.o.</em>">
+  <!NOTATION png SYSTEM "image/png">
+  <!ENTITY logo SYSTEM "logo.png" NDATA png>
+  <!ATTLIST entry
+      id     ID       #REQUIRED
+      ref    IDREF    #IMPLIED
+      kind   (a|b|c)  "a"
+      tokens NMTOKENS #IMPLIED
+      img    ENTITY   #IMPLIED
+      note   CDATA    "domyślna &firma;"
+      xmlns:x CDATA   #FIXED "urn:example:default-ns">
+]>
+<list>
+  <entry id="e1">&firma;</entry>
+  <entry id="e2" ref="e1" kind="b" tokens="  jeden   dwa  " img="logo" x:extra="1">&pełna; i tekst</entry>
+  <entry id="e3" note="własna">po &lt;em&gt;</entry>
+</list>

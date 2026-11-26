@@ -1,0 +1,103 @@
+2:1 comment " REQ: XML-006. Fragment w stylu arkusza SpreadsheetML, napisany od zera: wiersze i kom\u00f3rki. "
+3:1 start {urn:example:sheet}"worksheet" end=3:65
+  ns ""="urn:example:sheet"
+  ns "r"="urn:example:rels"
+3:65 text "\n  " whitespace
+4:3 start {urn:example:sheet}"dimension" end=4:27 selfclosing
+  attr {}"ref"="A1:C3" 4:14
+4:3 end {urn:example:sheet}"dimension"
+4:27 text "\n  " whitespace
+5:3 start {urn:example:sheet}"sheetData" end=5:14
+5:14 text "\n    " whitespace
+6:5 start {urn:example:sheet}"row" end=6:28
+  attr {}"r"="1" 6:10
+  attr {}"spans"="1:3" 6:16
+6:28 start {urn:example:sheet}"c" end=6:44
+  attr {}"r"="A1" 6:31
+  attr {}"t"="s" 6:38
+6:44 start {urn:example:sheet}"v" end=6:47
+6:47 text "0"
+6:48 end {urn:example:sheet}"v"
+6:52 end {urn:example:sheet}"c"
+6:56 start {urn:example:sheet}"c" end=6:72
+  attr {}"r"="B1" 6:59
+  attr {}"t"="s" 6:66
+6:72 start {urn:example:sheet}"v" end=6:75
+6:75 text "1"
+6:76 end {urn:example:sheet}"v"
+6:80 end {urn:example:sheet}"c"
+6:84 start {urn:example:sheet}"c" end=6:100
+  attr {}"r"="C1" 6:87
+  attr {}"t"="s" 6:94
+6:100 start {urn:example:sheet}"v" end=6:103
+6:103 text "2"
+6:104 end {urn:example:sheet}"v"
+6:108 end {urn:example:sheet}"c"
+6:112 end {urn:example:sheet}"row"
+6:118 text "\n    " whitespace
+7:5 start {urn:example:sheet}"row" end=7:28
+  attr {}"r"="2" 7:10
+  attr {}"spans"="1:3" 7:16
+7:28 start {urn:example:sheet}"c" end=7:38
+  attr {}"r"="A2" 7:31
+7:38 start {urn:example:sheet}"v" end=7:41
+7:41 text "1"
+7:42 end {urn:example:sheet}"v"
+7:46 end {urn:example:sheet}"c"
+7:50 start {urn:example:sheet}"c" end=7:66
+  attr {}"r"="B2" 7:53
+  attr {}"s"="3" 7:60
+7:66 start {urn:example:sheet}"v" end=7:69
+7:69 text "1234.56"
+7:76 end {urn:example:sheet}"v"
+7:80 end {urn:example:sheet}"c"
+7:84 start {urn:example:sheet}"c" end=7:94
+  attr {}"r"="C2" 7:87
+7:94 start {urn:example:sheet}"f" end=7:97
+7:97 text "A2*B2"
+7:102 end {urn:example:sheet}"f"
+7:106 start {urn:example:sheet}"v" end=7:109
+7:109 text "1234.56"
+7:116 end {urn:example:sheet}"v"
+7:120 end {urn:example:sheet}"c"
+7:124 end {urn:example:sheet}"row"
+7:130 text "\n    " whitespace
+8:5 start {urn:example:sheet}"row" end=8:28
+  attr {}"r"="3" 8:10
+  attr {}"spans"="1:3" 8:16
+8:28 start {urn:example:sheet}"c" end=8:38
+  attr {}"r"="A3" 8:31
+8:38 start {urn:example:sheet}"v" end=8:41
+8:41 text "2"
+8:42 end {urn:example:sheet}"v"
+8:46 end {urn:example:sheet}"c"
+8:50 start {urn:example:sheet}"c" end=8:74
+  attr {}"r"="B3" 8:53
+  attr {}"t"="inlineStr" 8:60
+8:74 start {urn:example:sheet}"is" end=8:78
+8:78 start {urn:example:sheet}"t" end=8:102
+  attr {http://www.w3.org/XML/1998/namespace}"xml:space"="preserve" 8:81
+8:102 text " tekst w kom\u00f3rce "
+8:119 end {urn:example:sheet}"t"
+8:123 end {urn:example:sheet}"is"
+8:128 end {urn:example:sheet}"c"
+8:132 start {urn:example:sheet}"c" end=8:143 selfclosing
+  attr {}"r"="C3" 8:135
+8:132 end {urn:example:sheet}"c"
+8:143 end {urn:example:sheet}"row"
+8:149 text "\n  " whitespace
+9:3 end {urn:example:sheet}"sheetData"
+9:15 text "\n  " whitespace
+10:3 start {urn:example:sheet}"pageMargins" end=10:65 selfclosing
+  attr {}"left"="0.7" 10:16
+  attr {}"right"="0.7" 10:27
+  attr {}"top"="0.75" 10:39
+  attr {}"bottom"="0.75" 10:50
+10:3 end {urn:example:sheet}"pageMargins"
+10:65 text "\n  " whitespace
+11:3 start {urn:example:sheet}"drawing" end=11:25 selfclosing
+  attr {urn:example:rels}"r:id"="rId1" 11:12
+11:3 end {urn:example:sheet}"drawing"
+11:25 text "\n" whitespace
+12:1 end {urn:example:sheet}"worksheet"
+eof

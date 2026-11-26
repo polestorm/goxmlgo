@@ -1,0 +1,8 @@
+2:1 comment " REQ: XML-003. Kodowanie: UTF-8 z BOM "
+3:1 start {}"kodowanie" end=3:26
+  attr {}"nazwa"="utf-8" 3:12
+3:26 start {}"tekst" end=3:33
+3:33 text "za\u017c\u00f3\u0142\u0107 g\u0119\u015bl\u0105 ja\u017a\u0144 \U0001f600"
+3:52 end {}"tekst"
+3:60 end {}"kodowanie"
+eof

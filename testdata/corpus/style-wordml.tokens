@@ -1,0 +1,94 @@
+2:1 comment " REQ: XML-006 XML-013. Fragment w stylu WordprocessingML, napisany od zera: wiele atrybut\u00f3w z prefiksem, mc:Ignorable. "
+3:1 start {urn:example:wordml}"w:document" end=3:151
+  ns "w"="urn:example:wordml"
+  ns "mc"="urn:example:compat"
+  ns "w14"="urn:example:wordml14"
+  ns "r"="urn:example:rels"
+  attr {urn:example:compat}"mc:Ignorable"="w14" 3:132
+3:151 text "\n  " whitespace
+4:3 start {urn:example:wordml}"w:body" end=4:11
+4:11 text "\n    " whitespace
+5:5 start {urn:example:wordml}"w:p" end=5:118
+  attr {urn:example:wordml14}"w14:paraId"="0A1B2C3D" 5:10
+  attr {urn:example:wordml14}"w14:textId"="77777777" 5:32
+  attr {urn:example:wordml}"w:rsidR"="00AB12CD" 5:54
+  attr {urn:example:wordml}"w:rsidRDefault"="00AB12CD" 5:73
+  attr {urn:example:wordml}"w:rsidP"="00EF3456" 5:99
+5:118 text "\n      " whitespace
+6:7 start {urn:example:wordml}"w:pPr" end=6:14
+6:14 start {urn:example:wordml}"w:pStyle" end=6:41 selfclosing
+  attr {urn:example:wordml}"w:val"="Nagwek1" 6:24
+6:14 end {urn:example:wordml}"w:pStyle"
+6:41 start {urn:example:wordml}"w:jc" end=6:63 selfclosing
+  attr {urn:example:wordml}"w:val"="center" 6:47
+6:41 end {urn:example:wordml}"w:jc"
+6:63 end {urn:example:wordml}"w:pPr"
+6:71 text "\n      " whitespace
+7:7 start {urn:example:wordml}"w:r" end=7:12
+7:12 start {urn:example:wordml}"w:rPr" end=7:19
+7:19 start {urn:example:wordml}"w:b" end=7:25 selfclosing
+7:19 end {urn:example:wordml}"w:b"
+7:25 start {urn:example:wordml}"w:sz" end=7:43 selfclosing
+  attr {urn:example:wordml}"w:val"="28" 7:31
+7:25 end {urn:example:wordml}"w:sz"
+7:43 end {urn:example:wordml}"w:rPr"
+7:51 start {urn:example:wordml}"w:t" end=7:56
+7:56 text "Tytu\u0142 dokumentu"
+7:71 end {urn:example:wordml}"w:t"
+7:77 end {urn:example:wordml}"w:r"
+7:83 text "\n    " whitespace
+8:5 end {urn:example:wordml}"w:p"
+8:11 text "\n    " whitespace
+9:5 start {urn:example:wordml}"w:p" end=9:10
+9:10 text "\n      " whitespace
+10:7 start {urn:example:wordml}"w:r" end=10:12
+10:12 start {urn:example:wordml}"w:t" end=10:38
+  attr {http://www.w3.org/XML/1998/namespace}"xml:space"="preserve" 10:17
+10:38 text "Tekst ze spacj\u0105 na ko\u0144cu "
+10:63 end {urn:example:wordml}"w:t"
+10:69 end {urn:example:wordml}"w:r"
+10:75 text "\n      " whitespace
+11:7 start {urn:example:wordml}"w:hyperlink" end=11:46
+  attr {urn:example:rels}"r:id"="rId5" 11:20
+  attr {urn:example:wordml}"w:history"="1" 11:32
+11:46 start {urn:example:wordml}"w:r" end=11:51
+11:51 start {urn:example:wordml}"w:t" end=11:56
+11:56 text "odsy\u0142acz"
+11:64 end {urn:example:wordml}"w:t"
+11:70 end {urn:example:wordml}"w:r"
+11:76 end {urn:example:wordml}"w:hyperlink"
+11:90 text "\n      " whitespace
+12:7 start {urn:example:compat}"mc:AlternateContent" end=12:28
+12:28 start {urn:example:compat}"mc:Choice" end=12:54
+  attr {}"Requires"="w14" 12:39
+12:54 start {urn:example:wordml14}"w14:nowe" end=12:65 selfclosing
+12:54 end {urn:example:wordml14}"w14:nowe"
+12:65 end {urn:example:compat}"mc:Choice"
+12:77 start {urn:example:compat}"mc:Fallback" end=12:90
+12:90 start {urn:example:wordml}"w:r" end=12:95
+12:95 start {urn:example:wordml}"w:t" end=12:100
+12:100 text "zast\u0119pczy"
+12:109 end {urn:example:wordml}"w:t"
+12:115 end {urn:example:wordml}"w:r"
+12:121 end {urn:example:compat}"mc:Fallback"
+12:135 end {urn:example:compat}"mc:AlternateContent"
+12:157 text "\n    " whitespace
+13:5 end {urn:example:wordml}"w:p"
+13:11 text "\n    " whitespace
+14:5 start {urn:example:wordml}"w:sectPr" end=14:15
+14:15 start {urn:example:wordml}"w:pgSz" end=14:48 selfclosing
+  attr {urn:example:wordml}"w:w"="11906" 14:23
+  attr {urn:example:wordml}"w:h"="16838" 14:35
+14:15 end {urn:example:wordml}"w:pgSz"
+14:48 start {urn:example:wordml}"w:pgMar" end=14:116 selfclosing
+  attr {urn:example:wordml}"w:top"="1417" 14:57
+  attr {urn:example:wordml}"w:right"="1417" 14:70
+  attr {urn:example:wordml}"w:bottom"="1417" 14:85
+  attr {urn:example:wordml}"w:left"="1417" 14:101
+14:48 end {urn:example:wordml}"w:pgMar"
+14:116 end {urn:example:wordml}"w:sectPr"
+14:127 text "\n  " whitespace
+15:3 end {urn:example:wordml}"w:body"
+15:12 text "\n" whitespace
+16:1 end {urn:example:wordml}"w:document"
+eof

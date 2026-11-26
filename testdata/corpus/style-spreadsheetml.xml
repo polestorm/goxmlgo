@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- REQ: XML-006. Fragment w stylu arkusza SpreadsheetML, napisany od zera: wiersze i komórki. -->
+<worksheet xmlns="urn:example:sheet" xmlns:r="urn:example:rels">
+  <dimension ref="A1:C3"/>
+  <sheetData>
+    <row r="1" spans="1:3"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c><c r="C1" t="s"><v>2</v></c></row>
+    <row r="2" spans="1:3"><c r="A2"><v>1</v></c><c r="B2" s="3"><v>1234.56</v></c><c r="C2"><f>A2*B2</f><v>1234.56</v></c></row>
+    <row r="3" spans="1:3"><c r="A3"><v>2</v></c><c r="B3" t="inlineStr"><is><t xml:space="preserve"> tekst w komórce </t></is></c><c r="C3"/></row>
+  </sheetData>
+  <pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75"/>
+  <drawing r:id="rId1"/>
+</worksheet>

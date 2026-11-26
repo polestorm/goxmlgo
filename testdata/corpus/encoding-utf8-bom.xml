@@ -1,0 +1,3 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- REQ: XML-003. Kodowanie: UTF-8 z BOM -->
+<kodowanie nazwa="utf-8"><tekst>zażółć gęślą jaźń 😀</tekst></kodowanie>

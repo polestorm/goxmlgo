@@ -1,0 +1,8 @@
+2:1 comment " REQ: XML-003. Kodowanie: UTF-16 BE z BOM "
+3:1 start {}"kodowanie" end=3:29
+  attr {}"nazwa"="utf-16be" 3:12
+3:29 start {}"tekst" end=3:36
+3:36 text "za\u017c\u00f3\u0142\u0107 g\u0119\u015bl\u0105 ja\u017a\u0144 \U0001f600"
+3:55 end {}"tekst"
+3:63 end {}"kodowanie"
+eof
