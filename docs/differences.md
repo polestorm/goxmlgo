@@ -60,3 +60,23 @@ Czytnik (pomiar na tych samych 1 727 przypadkach: `results/xmlreader-conformance
 | odwołanie do encji zewnętrznej w treści | błąd `unsupported-external-entity` | błąd (encja nieznana) | 4.4.3, 5.1 |
 
 Pisarz: wiersze dojdą w etapie 3.
+
+## Względem `goxsdgo/xmlreader` v0.3.0 (i `goxmlgo` v0.1.0)
+
+Czytnik przeszedł bez zmiany zachowania (etap 1), a rozszerzenia etapu 2 są dodatkami. Jedyne różnice w zachowaniu
+to poprawki błędów znalezionych w etapie 2 testem czytania porcjami (`TestChunkedInput`) i testem różnicowym
+(`tools/bench`, `TestSameAsGoxsdgo`). Dla dokumentu czytanego jednym odczytem z bufora większego niż dokument
+różnic nie ma poza pierwszym wierszem tabeli: 1 727 przypadków W3C w zakresie daje ten sam strumień
+(`TestTokenStreamStable`), a z 3 381 plików zestawu i korpusu różni się jeden.
+
+| Zachowanie | v0.3.0 / v0.1.0 | od v0.2.0 | Reguła |
+|---|---|---|---|
+| deklaracja XML z białym znakiem przed `?>`, gdy za nią w buforze jest mniej bajtów niż nazwa szukanego pseudoatrybutu (np. cały dokument `<?xml version="1.0" ?><a/>`) | błąd `xml-eof 1:20` | dokument przeczytany | [23] XMLDecl |
+| deklaracja XML, gdy wejście przychodzi małymi porcjami (odczyt po jednym bajcie, mały pierwszy pakiet z sieci) | panika (`slice bounds out of range`) albo fałszywy błąd `xml-decl` | dokument przeczytany, strumień taki sam jak przy jednym odczycie | [23]; DET-003 |
+| znak niedozwolony ([2] Char) z zakresu ASCII tuż za nazwą | kod `xml-syntax` albo `xml-char` zależnie od tego, gdzie skończył się bufor | zawsze `xml-syntax` (jak dotąd przy jednym odczycie) | DET-003 |
+| plik `ibm/xml-1.1/valid/P03/ibm03v09.ent` zestawu W3C (encja zewnętrzna, nie dokument; kończy się tuż za deklaracją ze znakiem U+2028) | `xml-eof 1:20` | `xml-decl 1:21` | skutek pierwszego wiersza |
+
+Przyczyna dwóch pierwszych: czytnik zapamiętywał pozycję w buforze wejścia, a doczytanie danych przesuwa jego
+zawartość. Dotyczy to wydanych wersji `goxsdgo` (v0.3.0, v0.4.0). Decyzją właściciela tę jedną poprawkę przeniesiono
+także do zamrożonej kopii czytnika w `goxsdgo` (commit `140b2de` z 2026-11-26, jeszcze bez wydania); pozostałe zmiany
+etapu 2 `goxsdgo` dostanie przez przejście na `goxmlgo` (`migration.md`).

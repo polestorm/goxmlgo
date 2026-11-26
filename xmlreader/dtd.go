@@ -44,6 +44,20 @@ func (d *dtd) init() {
 	d.notation = map[string]bool{}
 }
 
+// reset przywraca stan początkowy z zachowaniem map (Reader.Reset). Wycinek notacji mógł trafić do wywołującego
+// (Reader.Notations), więc nie jest używany ponownie.
+func (d *dtd) reset() {
+	if d.general == nil {
+		d.init()
+		return
+	}
+	clear(d.general)
+	clear(d.params)
+	clear(d.attlists)
+	clear(d.notation)
+	*d = dtd{general: d.general, params: d.params, attlists: d.attlists, notation: d.notation}
+}
+
 // entityDeclaredApplies mówi, czy obowiązuje WFC Entity Declared (4.1).
 func (d *dtd) entityDeclaredApplies(standalone bool) bool {
 	return standalone || (!d.hasExternal && !d.peRefs)
@@ -52,20 +66,20 @@ func (d *dtd) entityDeclaredApplies(standalone bool) bool {
 func (r *Reader) processDecls() bool { return !r.dtd.unreadPE || r.standalone }
 
 // doctype czyta [28] doctypedecl.
-func (r *Reader) doctype(l, c int) (Token, error) {
+func (r *Reader) doctype(t *Token, l, c int) error {
 	start := r.consumed
 	r.advance(9)
 	if !r.skipSpace() {
-		return Token{}, r.syntaxOrEOF("white space after <!DOCTYPE", "document type declaration")
+		return r.syntaxOrEOF("white space after <!DOCTYPE", "document type declaration")
 	}
 	name, err := r.readName("document type name")
 	if err != nil {
-		return Token{}, err
+		return err
 	}
 	space := r.skipSpace()
 	if space && (r.hasPrefix("SYSTEM") || r.hasPrefix("PUBLIC")) {
 		if _, _, _, _, err := r.externalID(false); err != nil {
-			return Token{}, err
+			return err
 		}
 		r.dtd.hasExternal = true
 		r.skipSpace()
@@ -73,16 +87,17 @@ func (r *Reader) doctype(l, c int) (Token, error) {
 	if r.fill(1) && r.cur.buf[r.cur.pos] == '[' {
 		r.advance(1)
 		if err := r.intSubset(start); err != nil {
-			return Token{}, err
+			return err
 		}
 		r.advance(1) // ']'
 		r.skipSpace()
 	}
 	if err := r.expect(">", `">" at the end of the document type declaration`); err != nil {
-		return Token{}, err
+		return err
 	}
 	r.seenDoctype = true
-	return Token{Kind: KindDoctype, Name: Name{Local: name}, Line: l, Column: c}, nil
+	*t = Token{Kind: KindDoctype, Name: Name{Local: name}, Line: l, Column: c}
+	return nil
 }
 
 func (r *Reader) syntaxOrEOF(msg, what string) error {
@@ -135,12 +150,14 @@ func (r *Reader) intSubset(start int) error {
 			}
 		case r.hasPrefix("<!--"):
 			l, c := r.position()
-			if _, err := r.comment(l, c); err != nil {
+			var skipped Token // komentarze i PI z podzbioru wewnętrznego nie są tokenami dokumentu
+			if err := r.comment(&skipped, l, c); err != nil {
 				return err
 			}
 		case r.hasPrefix("<?"):
 			l, c := r.position()
-			if _, err := r.procInst(l, c); err != nil {
+			var skipped Token // komentarze i PI z podzbioru wewnętrznego nie są tokenami dokumentu
+			if err := r.procInst(&skipped, l, c); err != nil {
 				return err
 			}
 		case r.hasPrefix("<!["):
@@ -406,7 +423,7 @@ func (r *Reader) attlistDecl() error {
 					return err
 				}
 			}
-			v, err := r.attValue()
+			v, err := r.attValue(true)
 			if err != nil {
 				return err
 			}

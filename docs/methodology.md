@@ -4,7 +4,7 @@ Every number in the README files of this repository that compares goxmlgo with s
 file says what was measured, on what input, with which versions, on which machine and with which commands, so the
 measurement can be repeated by anyone. Raw results are in [`results/`](results/).
 
-Status: the reader is measured (stage 1, 2026-11-26). The sections for the writer (stage 3) and for the pipeline
+Status: the reader is measured (stages 1 and 2, 2026-11-26; the published numbers are from the stage 2 code). The sections for the writer (stage 3) and for the pipeline
 and the tree (stage 5) are templates. A number is published only when all of its section is filled in.
 
 ## Rules
@@ -67,11 +67,38 @@ its header has the date, the commit, the Go version, the system and the load of 
 
 ## Reader against the reader of goxsdgo v0.3.0 (criterion K7)
 
-Not measured yet. At v0.1.0 the code of the reader is the code of goxsdgo v0.3.0 (the difference is an import path
-and comments, [`provenance.md`](provenance.md)), so a ratio would measure only the noise of the machine. The
-measurement starts with stage 2, the first change to the reader, and is repeated at every release: the same
-document, the same run, both versions built into `tools/bench` (goxsdgo v0.3.0 as a module dependency of that
-tool, not of the library).
+At v0.1.0 the code of the reader is the code of goxsdgo v0.3.0 (the difference is an import path and comments,
+[`provenance.md`](provenance.md)), so the measurement starts with stage 2, the first change to the reader, and is
+repeated at every release.
+
+**Candidates.** `github.com/polestorm/goxsdgo/xmlreader` v0.3.0, fetched by the Go toolchain as a module
+dependency of `tools/bench` (version and checksum in `tools/bench/go.mod` and `go.sum`; the library module itself
+has no dependencies), and `xmlreader` of this repository. Both with `Options{}`, both reading every token to the
+end from a `bytes.Reader`, in one process, one goroutine.
+
+**Input.** Two documents generated in memory by deterministic functions of this repository
+(`internal/testkit/gen.go`; `TestGeneratorsAreDeterministic` pins their checksums): `GenJPK(20000)`, 8.8 MB of
+JPK-like rows (many short elements with text, two namespaces), and `GenWordML(30000)`, 9.3 MB of
+WordprocessingML-like paragraphs (many prefixed attributes, empty elements, character references).
+
+**Command**, from the repository root:
+
+```sh
+go -C tools/bench run . -root ../.. -out ../../docs/results/reader-vs-goxsdgo.txt
+```
+
+**Statistics.** One warm-up round, then 15 rounds; in each round every candidate reads the document once, and the
+order of the candidates changes every round. The table gives the median time of the 15 and the speed computed
+from it, the fastest and the slowest round, and the allocations of one more read. The ratio is the speed of
+goxmlgo divided by the speed of goxsdgo v0.3.0 on the same document; K7 requires at least 0.95 for every
+document, and the tool exits with status 1 below that.
+
+**Result** of 2026-11-26 ([`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt)): 1.24 on the JPK-like
+document and 1.19 on the WordprocessingML-like one.
+
+The same module has `TestSameAsGoxsdgo` (`go -C tools/bench test ./...`), which reads every file of the corpus and
+of the fetched W3C suite with both readers and requires the same tokens and the same error; the one deliberate
+difference is listed in [`differences.md`](differences.md).
 
 ## Writer
 
@@ -89,5 +116,8 @@ To be filled in at stages 4 and 5: memory per node, the 1 GB pass-through, how p
   run is in the header of the raw file. In the published run the 5 values of each benchmark differ by up to 9%
   (one slower run of `BenchmarkJPKStdlib`); between sessions absolute numbers move more than that, the order of the
   candidates did not.
-- One document shape (many short elements, two namespaces, little attribute data). Other shapes are measured in
-  stage 5 with the generators in `internal/testkit`.
+- The comparison with encoding/xml uses one document shape (many short elements, two namespaces, little attribute
+  data); the comparison with goxsdgo v0.3.0 adds an attribute-heavy one. Neither has long text or large
+  attribute values.
+- The ratio to goxsdgo v0.3.0 is taken within one process, alternating, so load on the machine affects both
+  candidates; the spread between the fastest and the slowest of the 15 rounds was under 7% for each candidate.

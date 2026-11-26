@@ -53,7 +53,7 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 
 | Fuzzer | Pakiet | Niezmiennik | Od etapu |
 |---|---|---|---|
-| `FuzzReader` | `xmlreader` | dziś (przeniesiony bez zmian): bez paniki; czytanie się kończy; pozycje tokenów i błędów w granicach wejścia; błąd zawsze typu `*Error`. Od etapu 2 dodatkowo: po błędzie stale ten sam błąd, limity dotrzymane, `Skip` i zwykłe czytanie dają ten sam werdykt | 1, rozszerzenia od 2 |
+| `FuzzReader` | `xmlreader` | bez paniki; czytanie się kończy; pozycje tokenów i błędów w granicach wejścia; błąd zawsze typu `*Error`. Od etapu 2: po błędzie stale ten sam błąd; strumień nie zależy od podziału wejścia na odczyty; czytnik po `Reset` daje ten sam strumień co nowy; czytanie ze `Skip` kończy się tak samo jak czytanie token po tokenie | 1, rozszerzenia od 2 |
 | `FuzzRoundTrip` | `xmlwriter` | wejście przyjęte przez czytnik: zapis bez błędu, ponowny odczyt daje równy strumień tokenów, drugi zapis te same bajty | 3 |
 | `FuzzWriter` | `xmlwriter` | dowolny ciąg wywołań: błąd ze stałym kodem albo wyjście przyjęte przez czytnik z tymi samymi wartościami | 3 |
 | `FuzzTree` | `xmltree` | drzewo → zapis równe strumień → zapis; ciąg operacji zmiany nie psuje wskaźników na rodzica ani dobrej formy zapisu | 4 |

@@ -49,9 +49,11 @@ const (
 	CodeLimitEntityExpand   = "limit-entity-expansion"
 	CodeLimitEntityDepth    = "limit-entity-depth"
 	CodeLimitDTDSize        = "limit-dtd-size"
+	CodeLimitElements       = "limit-elements"
 	CodeExternalEntity      = "unsupported-external-entity"
 	CodeEntityUnresolved    = "unsupported-entity-unresolved"
 	CodeConditionalSection  = "unsupported-conditional-section"
+	CodeUsageSkip           = "usage-skip"
 )
 
 const (
@@ -75,6 +77,17 @@ type Attr struct {
 
 type Binding struct{ Prefix, URI string }
 
+type Declaration struct {
+	Version string
+
+	Encoding string
+
+	Standalone string
+
+	InputEncoding string
+	BOM           bool
+}
+
 type Error struct {
 	Code string
 
@@ -92,10 +105,16 @@ type Limits struct {
 	MaxEntityExpansion int
 	MaxEntityDepth     int
 	MaxDTDSize         int
+
+	MaxElements int
 }
 
 type Name struct {
 	Space, Local, Prefix string
+}
+
+type NamespaceScope struct {
+	// contains filtered or unexported fields
 }
 
 type Notation struct {
@@ -118,6 +137,8 @@ type Token struct {
 	Name  Name
 	Attrs []Attr
 
+	Namespaces []Binding
+
 	Data []byte
 
 	CDATA, Whitespace bool
@@ -129,11 +150,29 @@ type Token struct {
 	EndLine, EndColumn int
 }
 
+type TokenReader interface {
+	Next() (Token, error)
+}
+
 func DefaultLimits() Limits
 
 func New(r io.Reader, opts Options) *Reader
 
 func (e *Error) Error() string
+
+func (s *NamespaceScope) Depth() int
+
+func (s *NamespaceScope) Lookup(prefix string) (string, bool)
+
+func (s *NamespaceScope) Pop()
+
+func (s *NamespaceScope) Push(declarations []Binding)
+
+func (s *NamespaceScope) Reset()
+
+func (s *NamespaceScope) Update(t Token)
+
+func (r *Reader) Declaration() (Declaration, error)
 
 func (r *Reader) DeclaredNamespaces() []Binding
 
@@ -142,5 +181,9 @@ func (r *Reader) LookupNamespace(prefix string) (string, bool)
 func (r *Reader) Next() (Token, error)
 
 func (r *Reader) Notations() []Notation
+
+func (r *Reader) Reset(src io.Reader, opts Options)
+
+func (r *Reader) Skip() error
 
 func (r *Reader) UnparsedEntity(name string) bool

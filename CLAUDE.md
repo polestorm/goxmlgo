@@ -49,8 +49,8 @@ kolumnę „Stan” w `docs/roadmap.md`.
 ## Jak pracujemy
 
 - etapy w kolejności z `docs/roadmap.md`; etapy 0 (narzędzia i szkielet testów) i 1 (przeniesienie czytnika bez
-  zmiany zachowania) wykonane 2026-11-26 (`docs/adr/0003-reader-transfer.md`, dowody w `docs/testing.md`);
-  **następny krok: etap 2**;
+  zmiany zachowania) wykonane 2026-11-26 (`docs/adr/0003-reader-transfer.md`), etap 2 (rozszerzenia czytnika)
+  tego samego dnia (`docs/adr/0004-reader-extensions.md`); dowody w `docs/testing.md`; **następny krok: etap 3**;
 - pytania 1–3 są rozstrzygnięte (ADR 0002: repozytorium publiczne od v0.1.0, deklaracje przestrzeni nazw
   w tokenie, zapis powrotny zachowuje treść, nie bajty), więc etapy 0–2 nie mają blokad decyzyjnych; pozostałe
   pytania (`docs/adr/open-questions.md`) rozstrzygamy w etapach, z rekomendacją;

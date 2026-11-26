@@ -3,7 +3,9 @@ package xmlreader
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
+	"strings"
 	"testing"
 	"unicode/utf8"
 
@@ -12,6 +14,9 @@ import (
 
 // FuzzReader: dowolne wejście nie powoduje paniki, czytanie się kończy, a pozycje tokenów i błędów leżą
 // w granicach wejścia (wiersz nie większy niż liczba wierszy, kolumna nie większa niż długość wiersza + 1).
+// Od etapu 2 także: po błędzie Next zwraca stale ten sam błąd; strumień nie zależy od podziału wejścia na
+// odczyty; czytnik użyty ponownie po Reset daje ten sam strumień co nowy; czytanie ze Skip kończy się tak samo
+// jak czytanie token po tokenie (EOF albo ten sam błąd w tym samym miejscu).
 func FuzzReader(f *testing.F) {
 	for _, s := range []string{
 		"<a/>",
@@ -63,9 +68,54 @@ func FuzzReader(f *testing.F) {
 					t.Fatalf("error of unexpected type: %v", err)
 				}
 				check(e.Line, e.Column)
-				return
+				if _, again := r.Next(); again != err {
+					t.Fatalf("after %v Next returns %v", err, again)
+				}
+				break
 			}
 			check(tok.Line, tok.Column)
 		}
+
+		want := dumpTokens(bytes.NewReader(data))
+		end := want[strings.LastIndexByte(want[:len(want)-1], '\n')+1:]
+		// podział wejścia na odczyty
+		if got := dumpTokens(&chunked{data: data, n: 1 + len(data)%11}); got != want {
+			t.Fatalf("stream depends on how the input is split into reads\n%s", firstDiff(got, want))
+		}
+		// ponowne użycie czytnika
+		fuzzReused.Reset(bytes.NewReader(data), Options{})
+		if got := dumpReader(fuzzReused); got != want {
+			t.Fatalf("stream after Reset differs from a new reader\n%s", firstDiff(got, want))
+		}
+		// Skip na co k-tym początku elementu
+		k := 1 + len(data)%3
+		r = New(bytes.NewReader(data), Options{})
+		var last error
+		for n := 0; ; {
+			tok, err := r.Next()
+			if err != nil {
+				last = err
+				break
+			}
+			if tok.Kind == KindStartElement {
+				if n++; n%k == 0 {
+					if err := r.Skip(); err != nil {
+						last = err
+						break
+					}
+				}
+			}
+		}
+		got := "eof\n"
+		if last != io.EOF {
+			e := last.(*Error)
+			got = fmt.Sprintf("error %s %d:%d\n", e.Code, e.Line, e.Column)
+		}
+		if got != end {
+			t.Fatalf("reading with Skip ends with %q, reading every token with %q", got, end)
+		}
 	})
 }
+
+// fuzzReused to czytnik używany ponownie między wykonaniami fuzzera (Reset po dowolnym poprzednim dokumencie).
+var fuzzReused = New(bytes.NewReader(nil), Options{})

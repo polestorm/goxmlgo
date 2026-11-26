@@ -46,22 +46,35 @@ func TestAPISnapshot(t *testing.T) {
 	}
 }
 
-// TestReaderAPIMatchesGoxsdgo: API czytnika w v0.1.0 jest równe API goxsdgo/xmlreader v0.3.0 poza ścieżką pakietu.
-// Wzorzec api/baseline/xmlreader-goxsdgo-v0.3.0.txt powstał tym samym narzędziem z kodu goxsdgo w commicie
-// źródłowym (docs/provenance.md) i się nie zmienia. Od etapu 2 API rośnie: test zostanie wtedy zastąpiony
-// sprawdzeniem, że nic z wzorca nie zniknęło (API-003).
-// REQ: API-002
-func TestReaderAPIMatchesGoxsdgo(t *testing.T) {
-	body := func(path string) string {
+// TestReaderAPIKeepsGoxsdgo: API czytnika tylko rośnie. Każdy wiersz wzorca API goxsdgo/xmlreader v0.3.0
+// (api/baseline/xmlreader-goxsdgo-v0.3.0.txt, zrobionego tym samym narzędziem z kodu goxsdgo w commicie
+// źródłowym; równego API goxmlgo v0.1.0) jest nadal wierszem api/xmlreader.txt: żadna stała, pole, typ, funkcja
+// ani metoda nie zniknęły i nie zmieniły zapisu. Odstępy są pomijane, bo nowe pola zmieniają wyrównanie.
+// REQ: API-002 API-003
+func TestReaderAPIKeepsGoxsdgo(t *testing.T) {
+	lines := func(path string) []string {
 		b, err := os.ReadFile(path)
 		if err != nil {
 			t.Fatal(err)
 		}
-		s := strings.ReplaceAll(string(b), "\r\n", "\n")
-		return s[strings.IndexByte(s, '\n')+1:] // bez wiersza „package …”
+		var out []string
+		for i, l := range strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n") {
+			if l = strings.Join(strings.Fields(l), " "); l != "" && i > 0 { // bez wiersza „package …”
+				out = append(out, l)
+			}
+		}
+		return out
 	}
-	if body("api/xmlreader.txt") != body("api/baseline/xmlreader-goxsdgo-v0.3.0.txt") {
-		t.Error("api/xmlreader.txt differs from the API of goxsdgo/xmlreader v0.3.0 (api/baseline)")
+	have := map[string]int{}
+	for _, l := range lines("api/xmlreader.txt") {
+		have[l]++
+	}
+	for _, l := range lines("api/baseline/xmlreader-goxsdgo-v0.3.0.txt") {
+		if have[l] == 0 {
+			t.Errorf("the API of goxsdgo/xmlreader v0.3.0 has %q, api/xmlreader.txt does not", l)
+			continue
+		}
+		have[l]--
 	}
 }
 

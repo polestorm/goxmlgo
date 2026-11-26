@@ -34,6 +34,13 @@ Dowód, że przeniesienie niczego nie zmieniło (zapisany w `testing.md`):
 Od tej chwili czytnik w `goxsdgo` jest zamrożony: poprawka czytnika wchodzi do `goxmlgo`, a `goxsdgo` dostaje ją
 przez podniesienie wersji.
 
+**Uwaga dla sesji `goxsdgo` (2026-11-26).** Etap 2 znalazł w czytniku wydanym w `goxsdgo` v0.3.0 i v0.4.0 błąd:
+deklaracja XML czytana małymi porcjami (np. `iotest.OneByteReader`, mały pierwszy pakiet z sieci) kończy się paniką
+albo fałszywym błędem, a bardzo mały dokument z białym znakiem przed `?>` (`<?xml version="1.0" ?><a/>`) jest
+odrzucany jako `xml-eof`. Opis i poprawka: `differences.md`, ADR 0004 pkt 9. Decyzją właściciela poprawkę
+przeniesiono do zamrożonej kopii jako wyjątek (`goxsdgo` commit `140b2de`, 2026-11-26, jeszcze bez wydania);
+to jedyna zmiana czytnika w `goxsdgo` po przeniesieniu.
+
 ## Etap 6a: `goxsdgo` (po v0.1.0)
 
 - `go.mod`: `require github.com/polestorm/goxmlgo`; reguła „zero zależności” w `CLAUDE.md`, README i CI zmienia się

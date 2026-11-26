@@ -19,6 +19,8 @@ da się odtworzyć. Dane cudze są pobierane według manifestu z sumami, dane w�
 | złożoność | `TestPathological` | czas liniowy na wejściach patologicznych (powtórzone atrybuty, głębokie zagnieżdżenie, długie nazwy, wiele deklaracji przestrzeni nazw, łańcuchy encji) (K6) |
 | pamięć strumienia | `TestStreamingMemory` (duży plik przez zmienną środowiskową) | czytnik → pisarz w stałej pamięci; 1 GB w < 64 MB (K7) |
 | powtarzalność | `TestDeterministic`, macierz CI | 10 przebiegów, te same bajty; wzorce korpusu zgodne na Linux, macOS i Windows; `go test -race` (K8) |
+| podział wejścia | `TestChunkedInput`, `TestXMLDeclSmallDocument` | ten sam strumień przy jednym odczycie, po jednym bajcie i porcjami po 7 bajtów, na korpusie i 1 727 przypadkach W3C |
+| zgodność z poprzednikiem | `TestTokenStreamStable`, `tools/bench`: `TestSameAsGoxsdgo` | strumień tokenów i błędów taki sam jak w v0.1.0 i w `goxsdgo` v0.3.0; różnice tylko wymienione w `differences.md` |
 | odporność | `FuzzReader`, `FuzzRoundTrip`, `FuzzWriter`, `FuzzTree`, `tools/fuzz` | bez paniki, niezmienniki z ADR 0001 (K5); dziennik w `fuzzing.md` |
 | wydajność | `Benchmark*`, `tools/bench` | szybkość i alokacje czytnika, pisarza, przelotu i drzewa; porównanie z czytnikiem `goxsdgo` v0.3.0 i z `encoding/xml` (K7); metoda w `methodology.md` |
 | przykłady | `Example*` | przykłady z dokumentacji kompilują się i dają zapisany wynik |
@@ -40,6 +42,7 @@ da się odtworzyć. Dane cudze są pobierane według manifestu z sumami, dane w�
 | Data | Commit | K1: W3C (zaliczone / w zakresie) | K2: zapis powrotny | K3: drzewo | Uwagi |
 |---|---|---|---|---|---|
 | 2026-11-26 | etapy 0–1, drzewo robocze przed pierwszym commitem (źródło: `goxsdgo` `698affa`) | 1 725 / 1 727 (eduni 476/477, ibm 526/527, oasis 323/323, sun 101/101, xmltest 299/299) | — (etap 3) | — (etap 4) | `go test ./xmlreader -run TestXMLConformance -v`, Go 1.26.6, macOS arm64; ta sama liczba i lista co w `goxsdgo`; korpus: 13 dokumentów, `TestCorpus` zgodny ze wzorcami; wymagania: 25 przyjętych, wszystkie z testem |
+| 2026-11-26 | etap 2, drzewo robocze przed pierwszym commitem | 1 725 / 1 727 (bez zmian; strumień 1 727 przypadków identyczny z v0.1.0, `TestTokenStreamStable`) | — (etap 3) | — (etap 4) | K7: 1,24× (JPK) i 1,19× (WordML) szybkości `goxsdgo` v0.3.0, `results/reader-vs-goxsdgo.txt`; test różnicowy z `goxsdgo` v0.3.0 na 3 381 plikach: 1 świadoma różnica (`differences.md`); wymagania: 37 przyjętych, wszystkie z testem; `FuzzReader` z nowymi niezmiennikami: przebieg sprawdzający 90 s lokalnie, 2,09 mln wykonań, bez błędu (nie liczy się do K5) |
 
 ## Dowody przeniesienia czytnika (etap 1, 2026-11-26)
 

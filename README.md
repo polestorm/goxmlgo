@@ -4,7 +4,8 @@ XML in pure Go, written from the W3C recommendations (XML 1.0 Fifth Edition, Nam
 a streaming reader, a streaming writer and an editable in-memory tree that share one token type. No cgo, no
 dependencies outside the Go standard library.
 
-Status: the reader is here ([`xmlreader`](xmlreader/README.md), with a comparison with `encoding/xml`): it was
+Status: the reader is here ([`xmlreader`](xmlreader/README.md), with a comparison with `encoding/xml`), with
+`Skip`, `Reset` and namespace declarations in the token: it was
 moved from [`goxsdgo/xmlreader`](https://github.com/polestorm/goxsdgo/tree/main/xmlreader) v0.3.0 with the same API
 and the same behaviour ([`docs/provenance.md`](docs/provenance.md)). The writer and the tree are planned
 ([`docs/roadmap.md`](docs/roadmap.md)).

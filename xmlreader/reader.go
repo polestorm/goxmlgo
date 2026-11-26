@@ -9,8 +9,12 @@
 // takes what the recommendation requires of a non-validating processor (section 5.1): internal entities, default
 // values and types of attributes, notations.
 //
-// Tokens are not copied: the Attrs and Data of a Token are valid until the next call to Next. Memory does not grow
-// with the size of the document, only with its depth and the size of its largest token.
+// Tokens are not copied: the slices of a Token (Attrs, Namespaces, Data) are valid until the next call to Next or
+// Skip. Strings are not reused: names, attribute values and namespace names stay valid for as long as the caller
+// keeps them. Memory does not grow with the size of the document, only with its depth and the size of its largest
+// token.
+//
+// A Reader is not safe for use by several goroutines at once; different Readers are independent.
 //
 // Supported encodings: UTF-8, UTF-16 (LE and BE), ISO-8859-1 and US-ASCII.
 package xmlreader
@@ -69,11 +73,19 @@ const (
 	AttrTypeEnumeration = "ENUMERATION"
 )
 
-// Token is one unit of the document. Attrs and Data are valid until the next call to Next.
+// Token is one unit of the document.
+//
+// The slices Attrs, Namespaces and Data belong to the reader and are valid until the next call to Next or Skip;
+// copy them to keep them. The strings in a token (Name, the Name, Value and Type of each Attr, the Prefix and URI
+// of each Binding) are never overwritten and may be kept.
 type Token struct {
 	Kind  Kind
 	Name  Name // the element; KindProcInst: Local is the PI target; KindDoctype: Local is the name in DOCTYPE
 	Attrs []Attr
+	// Namespaces (KindStartElement) are the namespace declarations of this element, in document order, those
+	// that come from default attribute values in the internal subset included; nil when there are none and
+	// without namespace processing. The same declarations as DeclaredNamespaces returns, without a copy.
+	Namespaces []Binding
 	// Data is the text (KindText), the content of a comment, or the data of a PI (without leading white space).
 	Data []byte
 	// CDATA: the text comes from a CDATA section. Whitespace: the text consists of S characters ([3]) only.
@@ -83,7 +95,6 @@ type Token struct {
 	// Line and Column are the position of the first character of the token, from 1; the column counts characters.
 	Line, Column int
 	// EndLine and EndColumn (KindStartElement): the position just after the end of the start tag (">" or "/>").
-	// goxsdgo reports element errors at this position, as libxml2 does.
 	EndLine, EndColumn int
 }
 
@@ -97,10 +108,15 @@ type Limits struct {
 	MaxEntityExpansion int // total length of the replacement text of expanded entities, in bytes
 	MaxEntityDepth     int // nesting of entity references
 	MaxDTDSize         int // length of the DOCTYPE declaration with its internal subset, in bytes
+	// MaxElements is the total number of elements in the document, those passed over by Skip included. Unlike the
+	// other limits it is off by default (a streaming reader keeps nothing per element): zero and negative values
+	// mean no limit. Set it when the caller builds something for every element.
+	MaxElements int
 }
 
 // DefaultLimits returns the default limits: depth 512, names 16 KiB, 4096 attributes, text tokens 16 MiB, entity
-// expansion 4 MiB in total, entity nesting 32, DOCTYPE 1 MiB.
+// expansion 4 MiB in total, entity nesting 32, DOCTYPE 1 MiB, and no limit on the number of elements
+// (MaxElements is zero).
 func DefaultLimits() Limits {
 	return Limits{
 		MaxDepth:           512,
@@ -116,10 +132,10 @@ func DefaultLimits() Limits {
 func (l Limits) withDefaults() Limits {
 	d := DefaultLimits()
 	pick := func(v, def int) int {
-		switch {
-		case v == 0:
-			return def
-		case v < 0:
+		if v == 0 {
+			v = def
+		}
+		if v < 0 {
 			return int(^uint(0) >> 1)
 		}
 		return v
@@ -132,6 +148,7 @@ func (l Limits) withDefaults() Limits {
 		MaxEntityExpansion: pick(l.MaxEntityExpansion, d.MaxEntityExpansion),
 		MaxEntityDepth:     pick(l.MaxEntityDepth, d.MaxEntityDepth),
 		MaxDTDSize:         pick(l.MaxDTDSize, d.MaxDTDSize),
+		MaxElements:        pick(l.MaxElements, -1),
 	}
 }
 
@@ -219,23 +236,174 @@ type Reader struct {
 	expanded   int
 	standalone bool
 	bomUTF8    bool
+
+	// nsOut to bufor na Token.Namespaces; elements liczy elementy dokumentu (Limits.MaxElements).
+	nsOut    []Binding
+	elements int
+	// afterStart: ostatnim tokenem zwróconym przez Next był początek elementu (stan, w którym wolno Skip).
+	// skipping: trwa Skip; wartości atrybutów poza deklaracjami przestrzeni nazw nie są zamieniane na napisy.
+	afterStart, skipping bool
+	// decl to treść deklaracji XML; startErr to błąd wykrycia kodowania albo deklaracji (pierwszy błąd dokumentu).
+	decl     Declaration
+	startErr error
 }
 
 // New returns a Reader of the document in r. Reads from r are buffered.
 func New(r io.Reader, opts Options) *Reader {
-	rd := &Reader{
-		in:    newInput(r),
-		lim:   opts.Limits.withDefaults(),
-		noNS:  opts.NoNamespaces,
-		line:  1,
-		col:   1,
-		names: map[string]string{},
-	}
-	rd.docF.doc = true
-	rd.docF.buf = make([]byte, 0, chunkSize+1024)
-	rd.cur = &rd.docF
-	rd.dtd.init()
+	rd := &Reader{}
+	rd.Reset(r, opts)
 	return rd
+}
+
+// Reset makes the Reader read the document in r with opts, as a Reader returned by New would, and keeps the
+// buffers of the Reader for reuse. It may be called at any point, also after an error and in the middle of a
+// document; tokens returned before the call are no longer valid. Reset on the zero Reader is the same as New.
+func (r *Reader) Reset(src io.Reader, opts Options) {
+	in := r.in
+	if in == nil {
+		in = newInput(src)
+	} else {
+		*in = input{r: src, raw: in.raw}
+	}
+	docBuf := r.docF.buf
+	if docBuf == nil {
+		docBuf = make([]byte, 0, chunkSize+1024)
+	}
+	names, qnames := r.names, r.qnames
+	if names == nil {
+		names = map[string]string{}
+	}
+	// Pełne tablice nazw zaczynamy od nowa: inaczej nazwy kolejnych dokumentów nie byłyby już zapamiętywane.
+	if len(names) >= internLimit {
+		clear(names)
+	}
+	if len(qnames) >= internLimit {
+		clear(qnames)
+	}
+	d := r.dtd
+	d.reset()
+	*r = Reader{
+		in:      in,
+		lim:     opts.Limits.withDefaults(),
+		noNS:    opts.NoNamespaces,
+		line:    1,
+		col:     1,
+		names:   names,
+		qnames:  qnames,
+		frames:  r.frames[:0],
+		stack:   r.stack[:0],
+		ns:      r.ns[:0],
+		text:    r.text[:0],
+		nbuf:    r.nbuf[:0],
+		vbuf:    r.vbuf[:0],
+		attrs:   r.attrs[:0],
+		attrSet: r.attrSet,
+		expSet:  r.expSet,
+		out:     r.out[:0],
+		nsOut:   r.nsOut[:0],
+		dtd:     d,
+	}
+	r.docF.doc = true
+	r.docF.buf = docBuf[:0]
+	r.cur = &r.docF
+}
+
+// internLimit to największa liczba nazw zapamiętywanych przez intern i split.
+const internLimit = 8192
+
+// TokenReader is a source of tokens: a Reader, or anything that produces the same stream (a tree, a filter, a
+// validating reader). Next returns io.EOF after the last token; after the first other error it keeps returning
+// that error. The slices of a returned Token are valid until the next call.
+type TokenReader interface {
+	Next() (Token, error)
+}
+
+// Declaration is the XML declaration of a document and the encoding the document is read in.
+type Declaration struct {
+	// Version is the version in the XML declaration ("1.0"; documents that declare 1.x are read as 1.0), or ""
+	// when the document has no XML declaration.
+	Version string
+	// Encoding is the encoding name as written in the declaration, or "" when it has none.
+	Encoding string
+	// Standalone is "yes" or "no" as declared, or "" when the declaration does not say.
+	Standalone string
+	// InputEncoding is the encoding the reader decodes the document from: "UTF-8", "UTF-16LE", "UTF-16BE",
+	// "ISO-8859-1" or "US-ASCII". BOM reports whether the document starts with a byte order mark.
+	InputEncoding string
+	BOM           bool
+}
+
+// Declaration returns the XML declaration and the encoding of the document. It may be called before the first
+// Next (it then reads the beginning of the document) or at any time after it. An error in the declaration or in
+// the detection of the encoding is returned here and by every later call to Next.
+func (r *Reader) Declaration() (Declaration, error) {
+	if r.err == nil {
+		r.begin()
+	}
+	if r.startErr != nil {
+		return Declaration{}, r.startErr
+	}
+	d := r.decl
+	d.BOM = r.bomUTF8
+	switch r.in.enc {
+	case encUTF8:
+		d.InputEncoding = "UTF-8"
+	case encUTF16LE:
+		d.InputEncoding, d.BOM = "UTF-16LE", true
+	case encUTF16BE:
+		d.InputEncoding, d.BOM = "UTF-16BE", true
+	case encLatin1:
+		d.InputEncoding = "ISO-8859-1"
+	case encASCII:
+		d.InputEncoding = "US-ASCII"
+	}
+	return d, nil
+}
+
+// begin wykrywa kodowanie i czyta deklarację XML, jeśli jeszcze tego nie zrobiono; błąd zostaje błędem czytnika.
+func (r *Reader) begin() {
+	if r.started {
+		return
+	}
+	if err := r.start(); err != nil {
+		r.startErr, r.err = err, err
+	}
+}
+
+// Skip passes over the rest of the element whose start tag the last call to Next returned: the next token is
+// the first one after its end tag (for an empty-element tag, after its KindEndElement). The content passed over
+// is checked exactly as when it is read, so a document that is not well-formed, breaks a namespace constraint or
+// exceeds a limit there gives the same error, which is then also the error of every later Next. Skip does not
+// build attribute values and allocates nothing per element passed over.
+//
+// When the last token was not a KindStartElement (or there was none), Skip returns an *Error with the code
+// CodeUsageSkip and changes nothing.
+func (r *Reader) Skip() error {
+	if r.err != nil {
+		return r.err
+	}
+	if !r.afterStart {
+		l, c := r.position()
+		return &Error{Code: CodeUsageSkip, Line: l, Column: c, Message: "Skip must follow a start tag returned by Next"}
+	}
+	r.afterStart = false
+	var t Token
+	if r.pendingEnd {
+		r.pendingEnd = false
+		r.popElement(&t)
+		return nil
+	}
+	target := r.depth - 1
+	r.skipping = true
+	for r.depth > target {
+		if err := r.next(&t); err != nil {
+			r.skipping = false
+			r.err = err
+			return err
+		}
+	}
+	r.skipping = false
+	return nil
 }
 
 // Next returns the next token, or io.EOF at the end of the document. Well-formedness and namespace errors and
@@ -245,11 +413,14 @@ func (r *Reader) Next() (Token, error) {
 	if r.err != nil {
 		return Token{}, r.err
 	}
-	t, err := r.next()
-	if err != nil {
+	var t Token
+	if err := r.next(&t); err != nil {
 		r.err = err
+		r.afterStart = false
+		return Token{}, err
 	}
-	return t, err
+	r.afterStart = t.Kind == KindStartElement
+	return t, nil
 }
 
 // LookupNamespace returns the namespace bound to prefix in the scope of the current element (after
@@ -271,7 +442,7 @@ func (r *Reader) LookupNamespace(prefix string) (string, bool) {
 type Binding struct{ Prefix, URI string }
 
 // DeclaredNamespaces returns the namespace declarations of the current element (after KindStartElement), in
-// document order. The result is a copy and stays valid.
+// document order. The result is a copy and stays valid; Token.Namespaces gives the same without a copy.
 func (r *Reader) DeclaredNamespaces() []Binding {
 	if len(r.stack) == 0 {
 		return nil
@@ -447,7 +618,7 @@ func (r *Reader) intern(b []byte) string {
 		return s
 	}
 	s := string(b)
-	if len(r.names) < 8192 && len(b) <= 256 {
+	if len(r.names) < internLimit && len(b) <= 256 {
 		r.names[s] = s
 	}
 	return s
@@ -507,6 +678,15 @@ func (r *Reader) readName(what string) (string, error) {
 		}
 		if !r.fill(1) {
 			break
+		}
+		// Znak ASCII po nazwie ocenia wywołujący, tak jak na szybkiej ścieżce: inaczej kod błędu dla znaku
+		// niedozwolonego tuż za nazwą zależałby od tego, gdzie skończył się bufor.
+		if b := r.cur.buf[r.cur.pos]; b < utf8.RuneSelf {
+			if asciiName[b]&2 == 0 {
+				break
+			}
+			size = 1
+			continue
 		}
 		c, size, err = r.peekRune()
 		if err != nil {
@@ -585,22 +765,25 @@ func (r *Reader) start() error {
 	return nil
 }
 
-func (r *Reader) next() (Token, error) {
+// next czyta następny token do *t. Tokeny nie są zwracane przez wartość: struktura jest duża, a po drodze do
+// wywołującego byłaby kopiowana na każdym poziomie (pomiar K7).
+func (r *Reader) next(t *Token) error {
 	if !r.started {
-		if err := r.start(); err != nil {
-			return Token{}, err
+		if r.begin(); r.startErr != nil {
+			return r.startErr
 		}
 	}
 	if r.pendingEnd {
 		r.pendingEnd = false
-		return r.popElement(), nil
+		r.popElement(t)
+		return nil
 	}
 	r.text = r.text[:0]
 	inText := false
 	ws := true
 	var tl, tc int
-	textToken := func() Token {
-		return Token{Kind: KindText, Data: r.text, Whitespace: ws, Line: tl, Column: tc}
+	textToken := func() {
+		*t = Token{Kind: KindText, Data: r.text, Whitespace: ws, Line: tl, Column: tc}
 	}
 	beginText := func() {
 		if !inText {
@@ -612,61 +795,63 @@ func (r *Reader) next() (Token, error) {
 	for {
 		if !r.fill(1) {
 			if err := r.inputErr(); err != nil {
-				return Token{}, err
+				return err
 			}
 			if !r.cur.doc {
 				if r.depth != r.cur.depth {
-					return Token{}, r.errorf(CodeEntityStructure, "elements in entity &"+r.cur.ent.name+"; are not balanced")
+					return r.errorf(CodeEntityStructure, "elements in entity &"+r.cur.ent.name+"; are not balanced")
 				}
 				r.pop()
 				continue
 			}
 			if inText && r.depth > 0 {
-				return textToken(), nil
+				textToken()
+				return nil
 			}
 			if r.depth > 0 {
-				return Token{}, r.errorf(CodeEOF, "element <"+r.stack[len(r.stack)-1].raw+"> not closed")
+				return r.errorf(CodeEOF, "element <"+r.stack[len(r.stack)-1].raw+"> not closed")
 			}
 			if !r.seenRoot {
-				return Token{}, r.errorf(CodeNoRoot, "document has no root element")
+				return r.errorf(CodeNoRoot, "document has no root element")
 			}
-			return Token{}, io.EOF
+			return io.EOF
 		}
 		b := r.cur.buf[r.cur.pos]
 		switch b {
 		case '<':
 			if inText && r.depth > 0 {
-				return textToken(), nil
+				textToken()
+				return nil
 			}
 			inText = false
-			t, ok, err := r.markup()
+			ok, err := r.markup(t)
 			if err != nil || ok {
-				return t, err
+				return err
 			}
 			continue
 		case '&':
 			if r.depth == 0 {
-				return Token{}, r.errorf(CodeOutsideRoot, "reference outside the root element")
+				return r.errorf(CodeOutsideRoot, "reference outside the root element")
 			}
 			beginText()
 			_, err := r.contentReference(&ws)
 			if err != nil {
-				return Token{}, err
+				return err
 			}
 			if len(r.text) > r.lim.MaxTextSize {
-				return Token{}, r.errorf(CodeLimitTextSize, "text longer than the limit")
+				return r.errorf(CodeLimitTextSize, "text longer than the limit")
 			}
 			continue
 		}
 		beginText()
 		if err := r.charData(&ws); err != nil {
-			return Token{}, err
+			return err
 		}
 		if r.depth == 0 && !ws {
-			return Token{}, errorAt(CodeOutsideRoot, tl, tc, "text outside the root element")
+			return errorAt(CodeOutsideRoot, tl, tc, "text outside the root element")
 		}
 		if len(r.text) > r.lim.MaxTextSize {
-			return Token{}, r.errorf(CodeLimitTextSize, "text longer than the limit")
+			return r.errorf(CodeLimitTextSize, "text longer than the limit")
 		}
 	}
 }
@@ -843,133 +1028,136 @@ func (r *Reader) undeclared(name string, l, c int) error {
 }
 
 // markup rozpoznaje konstrukcję zaczynającą się od '<'. ok=false, gdy konstrukcja nie daje tokenu.
-func (r *Reader) markup() (Token, bool, error) {
+func (r *Reader) markup(t *Token) (bool, error) {
 	l, c := r.position()
 	r.fill(9)
 	buf := r.cur.buf[r.cur.pos:]
 	switch {
 	case bytes.HasPrefix(buf, []byte("</")):
 		if r.depth == 0 {
-			return Token{}, false, r.errorf(CodeOutsideRoot, "end tag outside the root element")
+			return false, r.errorf(CodeOutsideRoot, "end tag outside the root element")
 		}
-		t, err := r.endTag(l, c)
-		return t, err == nil, err
+		err := r.endTag(t, l, c)
+		return err == nil, err
 	case bytes.HasPrefix(buf, []byte("<?")):
-		t, err := r.procInst(l, c)
-		return t, err == nil, err
+		err := r.procInst(t, l, c)
+		return err == nil, err
 	case bytes.HasPrefix(buf, []byte("<!--")):
-		t, err := r.comment(l, c)
-		return t, err == nil, err
+		err := r.comment(t, l, c)
+		return err == nil, err
 	case bytes.HasPrefix(buf, []byte("<![CDATA[")):
 		if r.depth == 0 {
-			return Token{}, false, r.errorf(CodeOutsideRoot, "CDATA section outside the root element")
+			return false, r.errorf(CodeOutsideRoot, "CDATA section outside the root element")
 		}
-		t, err := r.cdata(l, c)
-		return t, err == nil, err
+		err := r.cdata(t, l, c)
+		return err == nil, err
 	case bytes.HasPrefix(buf, []byte("<!DOCTYPE")):
 		if r.seenDoctype || r.seenRoot || !r.cur.doc {
-			return Token{}, false, r.errorf(CodeSyntax, "document type declaration must precede the root element and appear once")
+			return false, r.errorf(CodeSyntax, "document type declaration must precede the root element and appear once")
 		}
-		t, err := r.doctype(l, c)
-		return t, err == nil, err
+		err := r.doctype(t, l, c)
+		return err == nil, err
 	case len(buf) >= 2 && buf[1] == '!':
-		return Token{}, false, r.errorf(CodeSyntax, "unknown markup declaration")
+		return false, r.errorf(CodeSyntax, "unknown markup declaration")
 	}
 	if len(buf) < 2 {
-		return Token{}, false, r.eofErr("start tag")
+		return false, r.eofErr("start tag")
 	}
 	if r.depth == 0 && r.seenRoot {
-		return Token{}, false, r.errorf(CodeOutsideRoot, "second root element")
+		return false, r.errorf(CodeOutsideRoot, "second root element")
 	}
-	t, err := r.startTag(l, c)
-	return t, err == nil, err
+	err := r.startTag(t, l, c)
+	return err == nil, err
 }
 
-func (r *Reader) comment(l, c int) (Token, error) {
+func (r *Reader) comment(t *Token, l, c int) error {
 	r.advance(4)
 	r.text = r.text[:0]
 	for {
 		if !r.fill(1) {
-			return Token{}, r.eofErr("comment")
+			return r.eofErr("comment")
 		}
 		if r.cur.buf[r.cur.pos] == '-' && r.hasPrefix("--") {
 			if !r.hasPrefix("-->") {
-				return Token{}, r.errorf(CodeComment, `"--" not allowed in a comment`)
+				return r.errorf(CodeComment, `"--" not allowed in a comment`)
 			}
 			r.advance(3)
-			return Token{Kind: KindComment, Data: r.text, Line: l, Column: c}, nil
+			*t = Token{Kind: KindComment, Data: r.text, Line: l, Column: c}
+			return nil
 		}
 		ch, size, err := r.peekRune()
 		if err != nil {
-			return Token{}, err
+			return err
 		}
 		_ = ch
 		r.text = append(r.text, r.cur.buf[r.cur.pos:r.cur.pos+size]...)
 		r.advance(size)
 		if len(r.text) > r.lim.MaxTextSize {
-			return Token{}, r.errorf(CodeLimitTextSize, "comment longer than the limit")
+			return r.errorf(CodeLimitTextSize, "comment longer than the limit")
 		}
 	}
 }
 
-func (r *Reader) procInst(l, c int) (Token, error) {
+func (r *Reader) procInst(t *Token, l, c int) error {
 	r.advance(2)
 	target, err := r.readName("processing instruction target")
 	if err != nil {
-		return Token{}, err
+		return err
 	}
 	if len(target) == 3 && (target[0]|0x20) == 'x' && (target[1]|0x20) == 'm' && (target[2]|0x20) == 'l' {
-		return Token{}, errorAt(CodeReservedPITarget, l, c, "processing instruction target "+target+" is reserved")
+		return errorAt(CodeReservedPITarget, l, c, "processing instruction target "+target+" is reserved")
 	}
 	if !r.noNS && bytes.IndexByte([]byte(target), ':') >= 0 {
-		return Token{}, errorAt(CodeQName, l, c, "processing instruction target contains a colon")
+		return errorAt(CodeQName, l, c, "processing instruction target contains a colon")
 	}
 	r.text = r.text[:0]
 	if !r.hasPrefix("?>") {
 		if !r.skipSpace() {
 			if !r.fill(1) {
-				return Token{}, r.eofErr("processing instruction")
+				return r.eofErr("processing instruction")
 			}
-			return Token{}, r.errorf(CodeSyntax, "white space required after the processing instruction target")
+			return r.errorf(CodeSyntax, "white space required after the processing instruction target")
 		}
 		for {
 			if !r.fill(1) {
-				return Token{}, r.eofErr("processing instruction")
+				return r.eofErr("processing instruction")
 			}
 			if r.cur.buf[r.cur.pos] == '?' && r.hasPrefix("?>") {
 				break
 			}
 			_, size, err := r.peekRune()
 			if err != nil {
-				return Token{}, err
+				return err
 			}
 			r.text = append(r.text, r.cur.buf[r.cur.pos:r.cur.pos+size]...)
 			r.advance(size)
 			if len(r.text) > r.lim.MaxTextSize {
-				return Token{}, r.errorf(CodeLimitTextSize, "processing instruction longer than the limit")
+				return r.errorf(CodeLimitTextSize, "processing instruction longer than the limit")
 			}
 		}
 	}
 	r.advance(2)
-	return Token{Kind: KindProcInst, Name: Name{Local: target}, Data: r.text, Line: l, Column: c}, nil
+	*t = Token{Kind: KindProcInst, Name: Name{Local: target}, Data: r.text, Line: l, Column: c}
+	return nil
 }
 
-func (r *Reader) cdata(l, c int) (Token, error) {
+func (r *Reader) cdata(t *Token, l, c int) error {
 	r.advance(9)
 	r.text = r.text[:0]
 	ws := true
 	for {
 		if !r.fill(1) {
-			return Token{}, r.eofErr("CDATA section")
+			return r.eofErr("CDATA section")
 		}
 		b := r.cur.buf[r.cur.pos]
 		if b == ']' && r.hasPrefix("]]>") {
 			r.advance(3)
-			return Token{Kind: KindText, CDATA: true, Data: r.text, Whitespace: ws, Line: l, Column: c}, nil
+			*t = Token{Kind: KindText, CDATA: true, Data: r.text, Whitespace: ws, Line: l, Column: c}
+			return nil
 		}
 		_, size, err := r.peekRune()
 		if err != nil {
-			return Token{}, err
+			return err
 		}
 		if !isSpace(b) {
 			ws = false
@@ -977,48 +1165,48 @@ func (r *Reader) cdata(l, c int) (Token, error) {
 		r.text = append(r.text, r.cur.buf[r.cur.pos:r.cur.pos+size]...)
 		r.advance(size)
 		if len(r.text) > r.lim.MaxTextSize {
-			return Token{}, r.errorf(CodeLimitTextSize, "CDATA section longer than the limit")
+			return r.errorf(CodeLimitTextSize, "CDATA section longer than the limit")
 		}
 	}
 }
 
-func (r *Reader) endTag(l, c int) (Token, error) {
+func (r *Reader) endTag(t *Token, l, c int) error {
 	r.advance(2)
 	name, err := r.readName("element name")
 	if err != nil {
-		return Token{}, err
+		return err
 	}
 	r.skipSpace()
 	if err := r.expect(">", `">" at the end of the end tag`); err != nil {
-		return Token{}, err
+		return err
 	}
 	top := r.stack[len(r.stack)-1]
 	if name != top.raw {
-		return Token{}, errorAt(CodeElementTypeMatch, l, c, "end tag </"+name+"> does not match start tag <"+top.raw+">")
+		return errorAt(CodeElementTypeMatch, l, c, "end tag </"+name+"> does not match start tag <"+top.raw+">")
 	}
 	if !r.cur.doc && r.depth == r.cur.depth {
-		return Token{}, errorAt(CodeEntityStructure, l, c, "end tag in entity &"+r.cur.ent.name+"; closes an element opened outside it")
+		return errorAt(CodeEntityStructure, l, c, "end tag in entity &"+r.cur.ent.name+"; closes an element opened outside it")
 	}
-	t := r.popElement()
+	r.popElement(t)
 	t.Line, t.Column = l, c
-	return t, nil
+	return nil
 }
 
-func (r *Reader) popElement() Token {
+func (r *Reader) popElement(t *Token) {
 	top := r.stack[len(r.stack)-1]
 	r.stack = r.stack[:len(r.stack)-1]
 	r.ns = r.ns[:top.nsMark]
 	r.depth--
 	// Pozycja znacznika początku; endTag nadpisuje ją pozycją znacznika końca.
-	return Token{Kind: KindEndElement, Name: top.name, Line: top.line, Column: top.column}
+	*t = Token{Kind: KindEndElement, Name: top.name, Line: top.line, Column: top.column}
 }
 
 // startTag czyta [40] STag albo [44] EmptyElemTag.
-func (r *Reader) startTag(l, c int) (Token, error) {
+func (r *Reader) startTag(t *Token, l, c int) error {
 	r.advance(1)
 	name, err := r.readName("element name")
 	if err != nil {
-		return Token{}, err
+		return err
 	}
 	r.attrs = r.attrs[:0]
 	clear(r.attrSet)
@@ -1027,7 +1215,7 @@ func (r *Reader) startTag(l, c int) (Token, error) {
 	for {
 		space := r.skipSpace()
 		if !r.fill(1) {
-			return Token{}, r.eofErr("start tag")
+			return r.eofErr("start tag")
 		}
 		b := r.cur.buf[r.cur.pos]
 		if b == '>' {
@@ -1036,39 +1224,44 @@ func (r *Reader) startTag(l, c int) (Token, error) {
 		}
 		if b == '/' {
 			if err := r.expect("/>", `"/>"`); err != nil {
-				return Token{}, err
+				return err
 			}
 			selfClosing = true
 			break
 		}
 		if !space {
-			return Token{}, r.errorf(CodeSyntax, "white space required before an attribute")
+			return r.errorf(CodeSyntax, "white space required before an attribute")
 		}
 		al, ac := r.position()
 		an, err := r.readName("attribute name")
 		if err != nil {
-			return Token{}, err
+			return err
 		}
 		r.skipSpace()
 		if err := r.expect("=", `"=" after the attribute name`); err != nil {
-			return Token{}, err
+			return err
 		}
 		r.skipSpace()
-		v, err := r.attValue()
+		// Podczas Skip wartość jest sprawdzana, ale napis powstaje tylko dla deklaracji przestrzeni nazw.
+		v, err := r.attValue(!r.skipping || (!r.noNS && (an == "xmlns" || strings.HasPrefix(an, "xmlns:"))))
 		if err != nil {
-			return Token{}, err
+			return err
 		}
 		if r.duplicateAttr(an) {
-			return Token{}, errorAt(CodeUniqueAttSpec, al, ac, "attribute "+an+" appears twice")
+			return errorAt(CodeUniqueAttSpec, al, ac, "attribute "+an+" appears twice")
 		}
 		if len(r.attrs) >= r.lim.MaxAttributes {
-			return Token{}, errorAt(CodeLimitAttributes, al, ac, "more attributes than the limit")
+			return errorAt(CodeLimitAttributes, al, ac, "more attributes than the limit")
 		}
 		r.attrs = append(r.attrs, rawAttr{name: an, value: v, specified: true, line: al, column: ac})
 	}
 	if r.depth >= r.lim.MaxDepth {
-		return Token{}, errorAt(CodeLimitDepth, l, c, "elements nested deeper than the limit")
+		return errorAt(CodeLimitDepth, l, c, "elements nested deeper than the limit")
 	}
+	if r.elements >= r.lim.MaxElements {
+		return errorAt(CodeLimitElements, l, c, "more elements than the limit")
+	}
+	r.elements++
 	r.dtd.applyAttlist(name, &r.attrs, l, c)
 	el := element{raw: name, nsMark: len(r.ns), line: l, column: c}
 	r.out = r.out[:0]
@@ -1081,7 +1274,7 @@ func (r *Reader) startTag(l, c int) (Token, error) {
 		var err error
 		el.name, err = r.namespaces(name, l, c)
 		if err != nil {
-			return Token{}, err
+			return err
 		}
 	}
 	r.stack = append(r.stack, el)
@@ -1089,8 +1282,17 @@ func (r *Reader) startTag(l, c int) (Token, error) {
 	r.seenRoot = true
 	r.pendingEnd = selfClosing
 	endL, endC := r.position()
-	return Token{Kind: KindStartElement, Name: el.name, Attrs: r.out, SelfClosing: selfClosing, Line: l, Column: c,
-		EndLine: endL, EndColumn: endC}, nil
+	var decls []Binding
+	if n := len(r.ns) - el.nsMark; n > 0 && !r.skipping {
+		r.nsOut = r.nsOut[:0]
+		for _, b := range r.ns[el.nsMark:] {
+			r.nsOut = append(r.nsOut, Binding{Prefix: b.prefix, URI: b.uri})
+		}
+		decls = r.nsOut
+	}
+	*t = Token{Kind: KindStartElement, Name: el.name, Attrs: r.out, Namespaces: decls, SelfClosing: selfClosing,
+		Line: l, Column: c, EndLine: endL, EndColumn: endC}
+	return nil
 }
 
 // duplicateAttr mówi, czy nazwa an już wystąpiła w bieżącym znaczniku.
@@ -1119,8 +1321,8 @@ func (r *Reader) duplicateAttr(an string) bool {
 }
 
 // attValue czyta [10] AttValue i normalizuje je według 3.3.3 (bez kroku dla typów innych niż CDATA, który
-// wykonuje applyAttlist).
-func (r *Reader) attValue() (string, error) {
+// wykonuje applyAttlist). Z keep=false wartość jest tak samo sprawdzana, ale wynikiem jest napis pusty (Skip).
+func (r *Reader) attValue(keep bool) (string, error) {
 	if !r.fill(1) {
 		return "", r.eofErr("attribute value")
 	}
@@ -1138,6 +1340,9 @@ func (r *Reader) attValue() (string, error) {
 		switch {
 		case b == q:
 			r.advance(1)
+			if !keep {
+				return "", nil
+			}
 			return string(r.vbuf), nil
 		case b == '<':
 			return "", r.errorf(CodeSyntax, `"<" not allowed in an attribute value`)
@@ -1410,7 +1615,7 @@ func (r *Reader) split(qname string) qsplit {
 	if r.qnames == nil {
 		r.qnames = map[string]qsplit{}
 	}
-	if len(r.qnames) < 8192 && len(qname) <= 256 {
+	if len(r.qnames) < internLimit && len(qname) <= 256 {
 		r.qnames[qname] = q
 	}
 	return q
@@ -1447,16 +1652,22 @@ func (r *Reader) resolve(qname string, elem bool, l, c int) (Name, error) {
 func (r *Reader) xmlDecl() error {
 	r.advance(5)
 	bad := func(msg string) error { return r.errorf(CodeXMLDecl, msg) }
+	// spaced: białe znaki przed następnym pseudoatrybutem są już zużyte (poprzedni attr ich nie dopasował).
+	// Pozycji w buforze nie wolno zapamiętywać: fill przesuwa jego zawartość, gdy wejście przychodzi małymi
+	// porcjami (w v0.1.0 i w goxsdgo v0.3.0 kończyło się to paniką albo fałszywym błędem xml-decl).
+	spaced := false
+	wsL, wsC := r.position() // miejsce przed białymi znakami: tam zgłaszamy brak wersji, jak w v0.1.0
 	attr := func(want string) (string, bool, error) {
-		save := r.cur.pos
-		saveL, saveC, saveN := r.line, r.col, r.consumed
-		if !r.skipSpace() {
+		if !spaced {
+			wsL, wsC = r.position()
+		}
+		if r.skipSpace() {
+			spaced = true
+		}
+		if !spaced || !r.hasPrefix(want) {
 			return "", false, nil
 		}
-		if !r.hasPrefix(want) {
-			r.cur.pos, r.line, r.col, r.consumed = save, saveL, saveC, saveN
-			return "", false, nil
-		}
+		spaced = false
 		r.advance(len(want))
 		r.skipSpace()
 		if err := r.expect("=", `"=" in the XML declaration`); err != nil {
@@ -1471,20 +1682,21 @@ func (r *Reader) xmlDecl() error {
 			return "", false, bad(want + " value must be quoted")
 		}
 		r.advance(1)
-		start := r.cur.pos
+		r.nbuf = r.nbuf[:0]
 		for r.fill(1) && r.cur.buf[r.cur.pos] != q {
 			if r.cur.buf[r.cur.pos] >= 0x80 || r.cur.buf[r.cur.pos] < 0x20 {
 				return "", false, bad("invalid character in " + want)
 			}
+			r.nbuf = append(r.nbuf, r.cur.buf[r.cur.pos])
 			r.advance(1)
-			if r.cur.pos-start > 64 {
+			if len(r.nbuf) > 64 {
 				return "", false, bad(want + " value too long")
 			}
 		}
 		if !r.fill(1) {
 			return "", false, r.eofErr("XML declaration")
 		}
-		v := string(r.cur.buf[start:r.cur.pos])
+		v := string(r.nbuf)
 		r.advance(1)
 		return v, true, nil
 	}
@@ -1492,8 +1704,9 @@ func (r *Reader) xmlDecl() error {
 	if err != nil {
 		return err
 	}
+	r.decl.Version = version
 	if !ok {
-		return bad("version is required in the XML declaration")
+		return errorAt(CodeXMLDecl, wsL, wsC, "version is required in the XML declaration")
 	}
 	if len(version) < 3 || version[:2] != "1." || !allDigits(version[2:]) {
 		return bad("version must match '1.' [0-9]+")
@@ -1506,6 +1719,7 @@ func (r *Reader) xmlDecl() error {
 		if !validEncName(enc) {
 			return bad("malformed encoding name")
 		}
+		r.decl.Encoding = enc
 		if err := r.setEncoding(enc); err != nil {
 			return err
 		}
@@ -1519,6 +1733,7 @@ func (r *Reader) xmlDecl() error {
 			return bad(`standalone must be "yes" or "no"`)
 		}
 		r.standalone = sd == "yes"
+		r.decl.Standalone = sd
 	}
 	r.skipSpace()
 	if !r.hasPrefix("?>") {

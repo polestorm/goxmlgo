@@ -49,7 +49,7 @@ jobs:
       - name: tools
         shell: bash
         run: |
-          for tool in fetch fuzz; do
+          for tool in fetch fuzz bench; do
             go -C tools/$tool vet ./...
             go -C tools/$tool test ./...
           done

@@ -17,7 +17,12 @@ const corpusDir = "../testdata/corpus"
 // dumpTokens zapisuje strumień tokenów dokumentu jako tekst: jeden wiersz na token, pod tokenem początku elementu
 // jego deklaracje przestrzeni nazw i atrybuty. Napisy są w cudzysłowie z samym ASCII (%+q), więc wzorzec nie
 // zależy od kodowania pliku ani od systemu. Ostatni wiersz to „eof” albo błąd z kodem i pozycją.
-func dumpTokens(src io.Reader) string {
+// newReaderForDump pozwala zrobić zrzut z istniejącego czytnika (dumpReader w extensions_test.go).
+var newReaderForDump = New
+
+func dumpTokens(src io.Reader) string { return dumpTokensOpts(src, Options{}) }
+
+func dumpTokensOpts(src io.Reader, opts Options) string {
 	var b strings.Builder
 	name := func(n Name) string {
 		s := n.Local
@@ -26,7 +31,7 @@ func dumpTokens(src io.Reader) string {
 		}
 		return fmt.Sprintf("{%s}%+q", n.Space, s)
 	}
-	r := New(src, Options{})
+	r := newReaderForDump(src, opts)
 	for {
 		t, err := r.Next()
 		if err == io.EOF {

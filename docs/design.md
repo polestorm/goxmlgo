@@ -55,7 +55,7 @@ Podstawa K2. Dwa strumienie tokenów są równe, gdy mają tę samą liczbę tok
 kodowanie wejścia, BOM, końce wierszy CR LF), deklaracja XML poza `version` i `standalone`. Stąd reguła dla
 konsumentów: fragmentu objętego podpisem nie przepisuje się przez tokeny.
 
-## Czytnik: rozszerzenia (etap 2)
+## Czytnik: rozszerzenia (etap 2, wykonane; decyzje w ADR 0004)
 
 | Dodatek | Po co | Uwagi |
 |---|---|---|
@@ -63,7 +63,7 @@ konsumentów: fragmentu objętego podpisem nie przepisuje się przez tokeny.
 | `(*Reader).Reset(r io.Reader, opts Options)` | ponowne użycie buforów przy wielu małych dokumentach (części DOCX, faktury) | stan po `Reset` nieodróżnialny od `New` |
 | `Limits.MaxElements` | ochrona konsumentów, którzy budują coś na element | domyślnie bez limitu (strumień), kod `limit-elements` |
 | deklaracje przestrzeni nazw w tokenie | łańcuchy bez dostępu do czytnika, pisarz | ADR 0002 |
-| deklaracja XML | pisarz ma odtworzyć `version` i `standalone` | metoda czytnika albo token; do decyzji w etapie 2 |
+| deklaracja XML | pisarz ma odtworzyć `version` i `standalone` | metoda `Declaration`, dostępna przed pierwszym `Next` (ADR 0004) |
 | gwarancja trwałości napisów | konsument wie, co musi kopiować | `Attr.Value`, `Name.*`, `Binding.*` zostają ważne po `Next`; `Token.Data` i wycinki nie. Zapis w dokumentacji i test |
 
 Wszystko jako dodatki: program napisany dla v0.1.0 kompiluje się i działa tak samo.

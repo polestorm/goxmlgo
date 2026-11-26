@@ -18,6 +18,18 @@ for {
 }
 ```
 
+Beyond `Next`:
+
+- `Skip` passes over the rest of an element without building its tokens; the content is still checked;
+- `Reset` reads the next document with the same Reader and its buffers (many small documents);
+- `Token.Namespaces` and `NamespaceScope` give the namespace declarations and the namespaces in scope to code that
+  sees only tokens; `TokenReader` is the interface of such a stream;
+- `Declaration` returns the XML declaration and the encoding of the input;
+- `Limits.MaxElements` bounds the number of elements, for callers that build something for each.
+
+The slices of a token (`Attrs`, `Namespaces`, `Data`) are valid until the next `Next` or `Skip`; its strings may
+be kept.
+
 The package was first published as `goxsdgo/xmlreader`; v0.1.0 here has the same API and the same behaviour as
 goxsdgo v0.3.0 ([how that was checked](../docs/provenance.md)). From v0.2.0 the API only grows. Error codes are
 listed in [docs/errors.md](../docs/errors.md), deliberate differences from the test suite and from encoding/xml in
@@ -32,8 +44,8 @@ Measured on 2026-11-26; every number leads to its input, method and raw result t
 | W3C XML Conformance, in-scope cases[^conf] | **1725 / 1727** | 1146 / 1727 |
 | … malformed documents rejected | **951 / 951** | 434 / 951 |
 | … well-formed documents read | **774 / 776** | 712 / 776 |
-| Speed, 8.8 MB JPK-like document[^perf] | **202 MB/s** | 90 MB/s (`Token`), 100 MB/s (`RawToken`) |
-| Memory allocated reading it[^perf] | **149 KB, 67 allocations** | 46 MB, 1.26 M allocations (`Token`) |
+| Speed, 8.8 MB JPK-like document[^perf] | **247 MB/s** | 89 MB/s (`Token`), 98 MB/s (`RawToken`) |
+| Memory allocated reading it[^perf] | **150 KB, 70 allocations** | 46 MB, 1.26 M allocations (`Token`) |
 | Position | **line and column of every token and error**; end of each start tag | `InputPos` after a token; line in error text |
 | Errors | **fixed code** (`wfc-unique-att-spec`, …), line, column, message | message text only |
 | Internal DTD subset | **internal entities, attribute defaults and types, notations** | returned as raw text |

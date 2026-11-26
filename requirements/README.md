@@ -5,14 +5,14 @@ test `TestRequirementsCovered` sprawdza pokrycie w obie strony.
 
 | Prefiks | Plik | Zakres | Etap | Status |
 |---|---|---|---|---|
-| `XML` | `xml.md` | czytnik: dobra forma, przestrzenie nazw, pozycje, DOCTYPE, limity (001…018 z `goxsdgo`), rozszerzenia (019…) | 1, 2 | 001…018 przyjęte (etap 1); 019… szkic |
+| `XML` | `xml.md` | czytnik: dobra forma, przestrzenie nazw, pozycje, DOCTYPE, limity (001…018 z `goxsdgo`), rozszerzenia (019…) | 1, 2 | 001…018 przyjęte (etap 1); 019…029 przyjęte (etap 2) |
 | `CH` | `chars.md` | klasy znaków XML 1.0 | 1, 2 | 001, 003, 004 przyjęte (etap 1); 002, 005 szkic |
 | `WR` | `writer.md` | pisarz: wywołania, tokeny, escapowanie, przestrzenie nazw, dobra forma wyjścia, kody | 3 | szkic |
 | `TR` | `tree.md` | drzewo: budowa, poddrzewo ze strumienia, zmiany, zapis, źródło tokenów, limit | 4 | szkic |
 | `STR` | `stream.md` | łańcuchy: przelot, filtr, wyspa; zapis powrotny | 3, 5 | szkic |
 | `SAFE` | `safety.md` | brak sieci i plików, encje zewnętrzne, limity, wrogie wejścia, czas liniowy | 5 | szkic (limity i encje zewnętrzne czytnika: XML-015, XML-016, przyjęte) |
 | `DET` | `determinism.md` | powtarzalność, niezależność od systemu, pamięć i alokacje | 3, 5 | szkic (pamięć czytnika: XML-017, przyjęte) |
-| `API` | `api.md` | zgodność i stabilność API, wzorce, kody błędów | 0, 1 | 001, 002, 004, 007 przyjęte (etapy 0–1); 003, 005, 006 szkic |
+| `API` | `api.md` | zgodność i stabilność API, wzorce, kody błędów | 0, 1 | 001, 002, 003, 004, 007 przyjęte (etapy 0–2); 005, 006 szkic |
 | `EVD` | `evidence.md` | pakiet dowodów (K9) | 5 | szkic |
 
 ## Szkic a wymaganie przyjęte

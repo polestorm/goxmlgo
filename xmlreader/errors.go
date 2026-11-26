@@ -6,7 +6,8 @@ import "fmt"
 // "wfc-*" and "nsc-*" are the names of the well-formedness constraints of XML 1.0 and the namespace constraints of
 // Namespaces in XML 1.0; "xml-*" are violations of the grammar and other rules of the recommendation; "ns-*" are
 // namespace rules outside the list of NSCs; "limit-*" are the limits of the reader (Limits); "unsupported-*" are
-// well-formed constructs the reader deliberately does not process.
+// well-formed constructs the reader deliberately does not process; "usage-*" are calls the state of the reader does
+// not allow (they say nothing about the document and are not fatal).
 const (
 	CodeEncodingInvalid     = "xml-encoding-invalid"     // bytes not valid in the encoding (4.3.3)
 	CodeEncodingUnsupported = "xml-encoding-unsupported" // not UTF-8, UTF-16, ISO-8859-1 or US-ASCII (4.3.3)
@@ -43,12 +44,15 @@ const (
 	CodeLimitEntityExpand   = "limit-entity-expansion"
 	CodeLimitEntityDepth    = "limit-entity-depth"
 	CodeLimitDTDSize        = "limit-dtd-size"
+	CodeLimitElements       = "limit-elements"
 	CodeExternalEntity      = "unsupported-external-entity"   // a reference to an external entity in content: never read
 	CodeEntityUnresolved    = "unsupported-entity-unresolved" // the entity may be declared in the external subset, which is never read
 	CodeConditionalSection  = "unsupported-conditional-section"
+	CodeUsageSkip           = "usage-skip" // Skip called when the last token was not a start tag
 )
 
-// Error is a fatal error (XML 1.0, section 1.2): after it the reader returns no more tokens.
+// Error is an error of the reader. Errors about the document are fatal (XML 1.0, section 1.2): after one the reader
+// returns no more tokens. Errors with a usage-* code leave the reader as it was.
 type Error struct {
 	Code string // one of the Code* constants
 	// Line and Column point at the character where the error was detected; from 1, the column in characters.

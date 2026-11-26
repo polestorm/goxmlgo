@@ -9,12 +9,14 @@ The catalogue grows with the packages: `xmlreader` (v0.1.0, below), `xmlwriter` 
 
 ## xmlreader
 
-`Reader.Next` returns `*xmlreader.Error` with `Code`, `Line`, `Column` (both from 1, the column in characters)
-and `Message`. Every error is fatal (XML 1.0, section 1.2): after it `Next` keeps returning the same error. An
+`Reader.Next` and `Reader.Skip` return `*xmlreader.Error` with `Code`, `Line`, `Column` (both from 1, the column in
+characters) and `Message`. Every error about the document is fatal (XML 1.0, section 1.2): after it `Next` keeps
+returning the same error. An
 error inside the replacement text of an entity points at the reference to the entity in the document.
 
 Sources: [XML] is Extensible Markup Language (XML) 1.0 Fifth Edition, [NS] is Namespaces in XML 1.0 Third Edition.
-Numbers in square brackets are grammar productions of [XML]. The codes are the same as in goxsdgo/xmlreader v0.3.0.
+Numbers in square brackets are grammar productions of [XML]. The codes of v0.1.0 are those of goxsdgo/xmlreader
+v0.3.0; `limit-elements` and `usage-skip` were added in v0.2.0.
 
 ### Grammar and document structure (`xml-*`)
 
@@ -77,6 +79,7 @@ limit.
 | `limit-entity-expansion` | `CodeLimitEntityExpand` | `MaxEntityExpansion`: total length of the replacement text of expanded entities | 4 MiB |
 | `limit-entity-depth` | `CodeLimitEntityDepth` | `MaxEntityDepth`: nesting of entity references | 32 |
 | `limit-dtd-size` | `CodeLimitDTDSize` | `MaxDTDSize`: length of the DOCTYPE declaration with its internal subset | 1 MiB |
+| `limit-elements` | `CodeLimitElements` | `MaxElements`: elements in the whole document, those passed over by `Skip` included; reported at the start tag that exceeds it | no limit (zero and negative values) |
 
 ### Well-formed constructs the reader does not process (`unsupported-*`)
 
@@ -88,3 +91,11 @@ what the caller sees, it reports an error instead ([XML] 5.1 lets a non-validati
 | `unsupported-external-entity` | `CodeExternalEntity` | [XML] 4.4.3, 5.1 | A reference to an external general entity in content. |
 | `unsupported-entity-unresolved` | `CodeEntityUnresolved` | [XML] 5.1 | A reference to an entity that is not declared in the internal subset and may be declared in the external subset or in a parameter entity, which are not read. |
 | `unsupported-conditional-section` | `CodeConditionalSection` | [XML] 3.4 | A conditional section in the replacement text of a parameter entity. |
+
+### Calls the state of the reader does not allow (`usage-*`)
+
+These say nothing about the document and are not fatal: the reader stays as it was.
+
+| Code | Constant | Meaning |
+|---|---|---|
+| `usage-skip` | `CodeUsageSkip` | `Skip` was called when the last token returned by `Next` was not a start tag (or before the first token). |
