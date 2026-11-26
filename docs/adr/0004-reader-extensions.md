@@ -41,7 +41,7 @@ plan zostawił do decyzji w etapie.
 7. **Trwałość:** napisy w tokenie są trwałe, wycinki nie. Zapisane w dokumentacji `Token` i pakietu, z testem.
 8. **Tokeny wewnątrz czytnika przez wskaźnik.** Nowe pole powiększyło `Token`, a funkcje wewnętrzne zwracały go
    przez wartość na czterech poziomach; pierwszy pomiar K7 dał 0,947× na dokumencie JPK (próg 0,95). Funkcje
-   wewnętrzne wypełniają teraz token wskazany przez `Next`. API bez zmian; po zmianie czytnik ma 1,24× i 1,19×
+   wewnętrzne wypełniają teraz token wskazany przez `Next`. API bez zmian; po zmianie czytnik ma 1,22× i 1,19×
    szybkości `goxsdgo` v0.3.0 (`results/reader-vs-goxsdgo.txt`).
 9. **Poprawki błędów mimo zasady „bez zmiany zachowania”.** Test czytania porcjami wykrył w kodzie przeniesionym
    z `goxsdgo` panikę i fałszywe błędy przy deklaracji XML oraz kod błędu zależny od granicy bufora
@@ -58,5 +58,5 @@ plan zostawił do decyzji w etapie.
 + pisarz i drzewo mogą pracować na samych tokenach;
 + czytnik jest szybszy niż przed rozszerzeniami i odporny na dowolny podział wejścia;
 − wydane `goxsdgo` v0.3.0 i v0.4.0 mają błąd deklaracji XML; decyzją właściciela poprawkę przeniesiono do
-  zamrożonej kopii czytnika jako wyjątek (`goxsdgo` commit `140b2de`, 2026-11-26, jeszcze bez wydania);
+  zamrożonej kopii czytnika jako wyjątek (`goxsdgo` commit `140b2de`, wydanie v0.4.1 z 2026-11-26);
 − `Token` urósł o 24 bajty; wywołujący, którzy trzymają tokeny w tablicach, zużyją więcej pamięci.

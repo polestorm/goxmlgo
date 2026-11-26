@@ -42,7 +42,7 @@ da się odtworzyć. Dane cudze są pobierane według manifestu z sumami, dane w�
 | Data | Commit | K1: W3C (zaliczone / w zakresie) | K2: zapis powrotny | K3: drzewo | Uwagi |
 |---|---|---|---|---|---|
 | 2026-11-26 | etapy 0–1, drzewo robocze przed pierwszym commitem (źródło: `goxsdgo` `698affa`) | 1 725 / 1 727 (eduni 476/477, ibm 526/527, oasis 323/323, sun 101/101, xmltest 299/299) | — (etap 3) | — (etap 4) | `go test ./xmlreader -run TestXMLConformance -v`, Go 1.26.6, macOS arm64; ta sama liczba i lista co w `goxsdgo`; korpus: 13 dokumentów, `TestCorpus` zgodny ze wzorcami; wymagania: 25 przyjętych, wszystkie z testem |
-| 2026-11-26 | etap 2, drzewo robocze przed pierwszym commitem | 1 725 / 1 727 (bez zmian; strumień 1 727 przypadków identyczny z v0.1.0, `TestTokenStreamStable`) | — (etap 3) | — (etap 4) | K7: 1,24× (JPK) i 1,19× (WordML) szybkości `goxsdgo` v0.3.0, `results/reader-vs-goxsdgo.txt`; test różnicowy z `goxsdgo` v0.3.0 na 3 381 plikach: 1 świadoma różnica (`differences.md`); wymagania: 37 przyjętych, wszystkie z testem; `FuzzReader` z nowymi niezmiennikami: przebieg sprawdzający 90 s lokalnie, 2,09 mln wykonań, bez błędu (nie liczy się do K5) |
+| 2026-11-26 | etap 2, `96c7949` | 1 725 / 1 727 (bez zmian; strumień 1 727 przypadków identyczny z v0.1.0, `TestTokenStreamStable`) | — (etap 3) | — (etap 4) | K7: 1,22× (JPK) i 1,19× (WordML) szybkości `goxsdgo` v0.3.0, `results/reader-vs-goxsdgo.txt`; test różnicowy z `goxsdgo` v0.3.0 na 3 381 plikach: 1 świadoma różnica (`differences.md`); wymagania: 37 przyjętych, wszystkie z testem; `FuzzReader` z nowymi niezmiennikami: przebieg sprawdzający 90 s lokalnie, 2,09 mln wykonań, bez błędu (nie liczy się do K5) |
 
 ## Dowody przeniesienia czytnika (etap 1, 2026-11-26)
 

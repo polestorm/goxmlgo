@@ -78,5 +78,5 @@ różnic nie ma poza pierwszym wierszem tabeli: 1 727 przypadków W3C w zakresie
 
 Przyczyna dwóch pierwszych: czytnik zapamiętywał pozycję w buforze wejścia, a doczytanie danych przesuwa jego
 zawartość. Dotyczy to wydanych wersji `goxsdgo` (v0.3.0, v0.4.0). Decyzją właściciela tę jedną poprawkę przeniesiono
-także do zamrożonej kopii czytnika w `goxsdgo` (commit `140b2de` z 2026-11-26, jeszcze bez wydania); pozostałe zmiany
+także do zamrożonej kopii czytnika w `goxsdgo` (commit `140b2de`, wydanie v0.4.1 z 2026-11-26); pozostałe zmiany
 etapu 2 `goxsdgo` dostanie przez przejście na `goxmlgo` (`migration.md`).

@@ -1,14 +1,14 @@
 # go -C tools/bench run . -root ../.. -rounds 15
-# date: 2026-11-26T20:26Z
-# goxmlgo: working tree without a commit
+# date: 2026-11-26T22:36Z
+# goxmlgo: 96c7949
 # goxsdgo: v0.3.0 (module dependency of tools/bench, go.sum)
 # go1.26.6 darwin/arm64, 10 CPU, one goroutine
 # machine: Apple M4, 27.0.1, Darwin 27.0.0
 # per document: median of 15 rounds, candidates alternate within a round; ratio = goxmlgo MB/s / goxsdgo MB/s; K7 needs >= 0.95
 document	bytes	tokens	candidate	median_ms	MB/s	min_ms	max_ms	allocs	bytes_allocated
-GenJPK(20000)	8781376	540016	goxsdgo v0.3.0	42.82	205.1	41.44	43.14	66	147840
-GenJPK(20000)	8781376	540016	goxmlgo	34.54	254.2	34.12	36.49	68	148064
-GenWordML(30000)	9308048	720008	goxsdgo v0.3.0	90.98	102.3	90.32	91.89	180079	1348920
-GenWordML(30000)	9308048	720008	goxmlgo	76.26	122.1	75.60	77.49	180083	1349304
-# ratio GenJPK(20000): 1.240 (ok)
-# ratio GenWordML(30000): 1.193 (ok)
+GenJPK(20000)	8781376	540016	goxsdgo v0.3.0	42.18	208.2	41.91	42.80	66	147840
+GenJPK(20000)	8781376	540016	goxmlgo	34.57	254.0	33.81	34.88	67	148048
+GenWordML(30000)	9308048	720008	goxsdgo v0.3.0	90.96	102.3	90.42	92.24	180079	1348920
+GenWordML(30000)	9308048	720008	goxmlgo	76.28	122.0	75.79	77.20	180082	1349288
+# ratio GenJPK(20000): 1.220 (ok)
+# ratio GenWordML(30000): 1.192 (ok)

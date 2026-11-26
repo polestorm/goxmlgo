@@ -38,7 +38,7 @@ przez podniesienie wersji.
 deklaracja XML czytana małymi porcjami (np. `iotest.OneByteReader`, mały pierwszy pakiet z sieci) kończy się paniką
 albo fałszywym błędem, a bardzo mały dokument z białym znakiem przed `?>` (`<?xml version="1.0" ?><a/>`) jest
 odrzucany jako `xml-eof`. Opis i poprawka: `differences.md`, ADR 0004 pkt 9. Decyzją właściciela poprawkę
-przeniesiono do zamrożonej kopii jako wyjątek (`goxsdgo` commit `140b2de`, 2026-11-26, jeszcze bez wydania);
+przeniesiono do zamrożonej kopii jako wyjątek (`goxsdgo` commit `140b2de`, wydanie v0.4.1 z 2026-11-26);
 to jedyna zmiana czytnika w `goxsdgo` po przeniesieniu.
 
 ## Etap 6a: `goxsdgo` (po v0.1.0)

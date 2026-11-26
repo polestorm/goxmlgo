@@ -62,4 +62,4 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 
 | Data | Commit | Host i sprzęt | Fuzzer | Czas zegarowy | Wykonania | Wynik |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | — | kampanii jeszcze nie było: przed pierwszym commitem nie ma kandydata. Przebiegi `FuzzReader` w `goxsdgo` (jego `docs/fuzzing.md`) dotyczą tego samego kodu, ale do K5 tutaj się nie liczą |
+| 2026-11-26 | `96c7949` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader` | zlecone 23:37, 1 425 min, 3 workery | — | w kolejce za kampaniami `gohighlightgo`, `gomermaidgo` i `goxsdgo`; wynik dopisze `tools/fuzz -import` |

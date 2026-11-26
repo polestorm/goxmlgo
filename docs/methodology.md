@@ -93,7 +93,7 @@ from it, the fastest and the slowest round, and the allocations of one more read
 goxmlgo divided by the speed of goxsdgo v0.3.0 on the same document; K7 requires at least 0.95 for every
 document, and the tool exits with status 1 below that.
 
-**Result** of 2026-11-26 ([`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt)): 1.24 on the JPK-like
+**Result** of 2026-11-26 ([`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt)): 1.22 on the JPK-like
 document and 1.19 on the WordprocessingML-like one.
 
 The same module has `TestSameAsGoxsdgo` (`go -C tools/bench test ./...`), which reads every file of the corpus and
