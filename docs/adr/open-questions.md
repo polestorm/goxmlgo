@@ -32,8 +32,8 @@ Kolejność według etapu, w którym pytanie blokuje pracę.
 12. **Jak długo żyje pakiet aliasów `goxsdgo/xmlreader`.** Decyzja należy do `goxsdgo`; rekomendacja: do `goxsdgo`
     1.0, oznaczony jako przestarzały od pierwszego wydania po przełączeniu.
 13. **Cel szybkości przelotu (K7).** ADR 0001 podaje cel roboczy „czytnik → pisarz ≥ 100 MB/s na dokumencie
-    wzorcowym, do potwierdzenia pomiarem w etapie 3”. Pomiar z etapu 3: 159 MB/s (styl JPK) i 82 MB/s (styl
-    WordprocessingML, gdzie sam czytnik daje 123 MB/s). Rekomendacja: zamienić próg bezwzględny, zależny od
+    wzorcowym, do potwierdzenia pomiarem w etapie 3”. Pomiar z etapu 3: 164 MB/s (styl JPK) i 83 MB/s (styl
+    WordprocessingML, gdzie sam czytnik daje 125 MB/s). Rekomendacja: zamienić próg bezwzględny, zależny od
     maszyny, na względny mierzony w jednym przebiegu `tools/bench`: przelot ≥ 0,55× szybkości samego czytnika na
     każdym dokumencie wzorcowym (dziś 0,62 i 0,67) i nie wolniejszy niż przelot `encoding/xml`; liczby
     bezwzględne podawać w pomiarach. Decyzja należy do właściciela; do tego czasu K7 dla przelotu jest

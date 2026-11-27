@@ -63,7 +63,7 @@ i przyjęte (`../../requirements/writer.md`), razem z STR-001, 002, 003, 006, 00
     strumienia wobec `goxsdgo` v0.3.0 (22 z 3 394 plików), a testy `goxsdgo` v0.4.1 na czytniku po zmianie dają
     ten sam wynik co na v0.2.0 (1 127 zaliczonych, te same dwa testy księgowe).
 
-## Pomiary (2026-11-27, drzewo robocze etapu 3)
+## Pomiary (2026-11-27, commit `247615e`)
 
 - K2: korpus 13 z 13 dokumentów (wzorce `*.out.xml`), zestaw W3C 775 z 775 dokumentów, które czytnik przyjmuje
   (`TestRoundTrip`, zapadka `testdata/w3c/roundtrip.ratchet`); jeden dobrze uformowany przypadek w zakresie czytnik
@@ -71,12 +71,12 @@ i przyjęte (`../../requirements/writer.md`), razem z STR-001, 002, 003, 006, 00
 - `encoding/xml` jako czarna skrzynka na wyjściu pisarza: 767 z 789 dokumentów daje te same nazwy rozwinięte,
   wartości i dane; 13 `encoding/xml` odrzuca (nazwy z piątej edycji XML 1.0), 9 nie jest czytanych z przestrzeniami
   nazw (`TestStdlibWriter`).
-- Szybkość przelotu czytnik → pisarz (`tools/bench`, `../results/reader-vs-goxsdgo.txt`): 159 MB/s na dokumencie
-  w stylu JPK i 82 MB/s w stylu WordprocessingML, czyli 0,62 i 0,67 szybkości samego czytnika oraz 1,85× i 1,22×
+- Szybkość przelotu czytnik → pisarz (`tools/bench`, `../results/reader-vs-goxsdgo.txt`): 164 MB/s na dokumencie
+  w stylu JPK i 83 MB/s w stylu WordprocessingML, czyli 0,62 i 0,67 szybkości samego czytnika oraz 1,83× i 1,20×
   przelotu `Decoder` → `Encoder` z `encoding/xml`. Pisarz nie dodaje alokacji do alokacji czytnika; wywołania nie
   alokują po rozgrzaniu (`TestWriterAllocations`).
 - Cel roboczy K7 „przelot ≥ 100 MB/s na dokumencie wzorcowym” jest spełniony na jednym z dwóch dokumentów
-  wzorcowych. Na drugim sam czytnik daje 123 MB/s, więc cel bezwzględny jest tam blisko granicy tego, co możliwe.
+  wzorcowych. Na drugim sam czytnik daje 125 MB/s, więc cel bezwzględny jest tam blisko granicy tego, co możliwe.
   Pytanie 13 w `open-questions.md` proponuje, jak go sformułować.
 
 ## Konsekwencje

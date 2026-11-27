@@ -12,6 +12,5 @@ ręczna poprawka.
 | `reader-vs-goxsdgo.txt` | kryterium K7: szybkość i alokacje czytnika wobec `goxsdgo/xmlreader` v0.3.0 na dwóch dokumentach z generatorów, na przemian w jednym procesie; od etapu 3 także przelot czytnik → pisarz i przelot `encoding/xml` | `go -C tools/bench run . -root ../.. -out ../../docs/results/reader-vs-goxsdgo.txt` |
 | `transfer-goxsdgo-tests.txt` | dowód 4 przeniesienia czytnika: testy `goxsdgo` przed zamianą importu na `goxmlgo` i po niej | opis w nagłówku pliku |
 
-`reader-vs-goxsdgo.txt` z 2026-11-27 powstał z drzewa roboczego etapu 3 (nagłówek: commit „with uncommitted
-changes”); po commicie etapu pomiar powtarzamy tym samym poleceniem. `xmlreader-bench.txt` pochodzi z drzewa po
+`reader-vs-goxsdgo.txt` z 2026-11-27 pochodzi z commitu etapu 3 (`247615e`). `xmlreader-bench.txt` pochodzi z drzewa po
 etapie 2 sprzed pierwszego commitu.

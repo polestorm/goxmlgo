@@ -93,8 +93,8 @@ from it, the fastest and the slowest round, and the allocations of one more read
 goxmlgo divided by the speed of goxsdgo v0.3.0 on the same document; K7 requires at least 0.95 for every
 document, and the tool exits with status 1 below that.
 
-**Result** of 2026-11-27 ([`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt), working tree of stage
-3): 1.24 on the JPK-like document and 1.20 on the WordprocessingML-like one (1.22 and 1.19 on the commit of stage
+**Result** of 2026-11-27 ([`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt), commit of stage
+3, `247615e`): 1.23 on the JPK-like document and 1.20 on the WordprocessingML-like one (1.22 and 1.19 on the commit of stage
 2, `96c7949`).
 
 The same module has `TestSameAsGoxsdgo` (`go -C tools/bench test ./...`), which reads every file of the corpus and
@@ -127,9 +127,8 @@ read the document and write it at once to `io.Discard`: `xmlreader` → `xmlwrit
 default options) and `encoding/xml` `Decoder` → `Encoder` (`RawToken`, `EncodeToken`, `Flush`, default settings).
 The two do not do the same work: xmlwriter checks every name, character and namespace binding and keeps prefixes,
 CDATA sections and empty-element tags; `Encoder` rewrites namespace prefixes and checks less
-([`differences.md`](differences.md)). Result of 2026-11-27 (working tree of stage 3, to be repeated on its
-commit): 159 MB/s on the JPK-like document and 82 MB/s on the WordprocessingML-like one, that is 0.62 and 0.67 of
-the speed of the reader alone and 1.85 and 1.22 times the speed of the encoding/xml pass-through.
+([`differences.md`](differences.md)). Result of 2026-11-27 (commit of stage 3, `247615e`): 164 MB/s on the JPK-like document and 83 MB/s on the WordprocessingML-like one, that is 0.62 and 0.67 of
+the speed of the reader alone and 1.83 and 1.20 times the speed of the encoding/xml pass-through.
 
 **Allocations.** `go test ./xmlwriter -run TestWriterAllocations -v`: a document written with calls allocates
 nothing after warm-up at two sizes, and the pass-through allocates no more than the reader alone on the same

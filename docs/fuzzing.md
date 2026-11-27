@@ -62,7 +62,8 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 
 | Data | Commit | Host i sprzęt | Fuzzer | Czas zegarowy | Wykonania | Wynik |
 |---|---|---|---|---|---|---|
-| 2026-11-26 | `96c7949` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader` | zlecone 23:37, 1 425 min, 3 workery | — | w kolejce za kampaniami `gohighlightgo`, `gomermaidgo` i `goxsdgo`; wynik dopisze `tools/fuzz -import` |
+| 2026-11-26 | `96c7949` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader` | zlecone 23:37, nie rozpoczęte | — | wycofane z kolejki 2026-11-27 przed startem: etap 3 zmienił kod czytnika, więc przebieg nie liczyłby się do K5; zastąpione kampanią `247615e` |
+| 2026-11-27 | `247615e` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader`, `FuzzRoundTrip`, `FuzzWriter` | zlecone 08:21, 3 × 475 min, 3 workery | — | w kolejce za kampaniami `gohighlightgo`, `gomermaidgo`, `goxsdgo` i `gozipgo`; wynik dopisze `tools/fuzz -import` |
 
 ## Znalezione błędy
 
