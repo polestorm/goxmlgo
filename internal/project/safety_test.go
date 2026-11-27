@@ -1,4 +1,4 @@
-package goxmlgo
+package project
 
 import (
 	"errors"
@@ -28,7 +28,7 @@ func TestNoIOImports(t *testing.T) {
 		// wynik nie może zależeć od czasu, losowości ani środowiska (DET-003)
 		"time": true, "math/rand": true, "math/rand/v2": true, "crypto/rand": true, "os/user": true}
 	checked := 0
-	for _, pkg := range append([]string{"."}, publicPackages...) {
+	for _, pkg := range publicPackages {
 		files, err := filepath.Glob(filepath.Join(pkg, "*.go"))
 		if err != nil {
 			t.Fatal(err)

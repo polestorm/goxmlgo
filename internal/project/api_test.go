@@ -1,4 +1,4 @@
-package goxmlgo
+package project
 
 import (
 	"flag"
@@ -20,7 +20,7 @@ const modulePath = "github.com/polestorm/goxmlgo"
 var publicPackages = []string{"xmlchars", "xmlreader", "xmltree", "xmlwriter"}
 
 // TestAPISnapshot mierzy kryterium K4: publiczne API każdego pakietu jest równe wzorcowi api/<pakiet>.txt.
-// Zmiana API wymaga `go test . -run TestAPISnapshot -update`, przeglądu różnicy i wpisu w ADR albo CHANGELOG.md.
+// Zmiana API wymaga `go test ./internal/project -run TestAPISnapshot -update`, przeglądu różnicy i wpisu w ADR albo CHANGELOG.md.
 // REQ: API-001
 func TestAPISnapshot(t *testing.T) {
 	for _, pkg := range publicPackages {

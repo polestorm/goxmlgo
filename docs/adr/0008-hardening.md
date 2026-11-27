@@ -10,10 +10,10 @@ nie zmienia; etap dodaje testy, narzędzia i pomiary.
 
 ## Decyzja
 
-1. **Wzorce strumieniowe mają testy i przykłady w pakiecie głównym** (`stream_test.go`): filtr (`Skip`, zmiana
+1. **Wzorce strumieniowe mają testy i przykłady w `internal/project`** (`stream_test.go`): filtr (`Skip`, zmiana
    atrybutu i tekstu, dopisanie elementu) i wyspa (`ReadElement` → zmiana → `WriteTo` w środku przelotu).
-   Wymagania STR-004 i STR-005 przyjęte. Przykłady `Example_filter` i `Example_island` pokazuje pkg.go.dev
-   w dokumentacji modułu.
+   Wymagania STR-004 i STR-005 przyjęte. Przykłady pokazuje pkg.go.dev: `Example_filter` w `xmlwriter`,
+   `Example_island` w `xmltree`.
 2. **Pamięć strumienia mierzymy dwiema liczbami**: szczytem sterty ponad stan sprzed przebiegu (próbkowanie co
    200 µs) i pamięcią pobraną od systemu przez cały proces testu. Dokument powstaje w generatorze, więc nie
    zajmuje pamięci ani dysku. W każdym `go test` test biegnie na 100 MB z granicą 8 MB sterty; pomiar K7 (1 GB,
@@ -54,6 +54,11 @@ nie zmienia; etap dodaje testy, narzędzia i pomiary.
    repozytorium deklarują `go 1.26`, a CI ma jedną wersję. Powód podany w pkt 5 dla osobnego modułu
    `tools/compare` przestaje obowiązywać; moduł zostaje osobny, bo ma zależności, których `tools/bench` nie
    potrzebuje. Moduł, który zależy od `goxmlgo`, musi deklarować co najmniej tę samą wersję.
+
+9. **Układ repozytorium jak w pozostałych projektach rodziny**: w katalogu głównym tylko `go.mod`, `LICENSE`,
+   `NOTICE` i `README.md`. Testy całego repozytorium są w `internal/project` (z `TestMain`, który przechodzi do
+   katalogu głównego), `CHANGELOG.md` w `docs/`, instrukcje dla asystenta w `.claude/CLAUDE.md`. Moduł nie ma już
+   pakietu głównego: dokumentacją modułu jest README, a przykłady wzorców są w pakietach.
 
 ## Pomiary (2026-11-27, commit `3d2dbc3`; Apple M4, Go 1.26.6)
 

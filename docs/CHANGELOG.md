@@ -17,7 +17,7 @@ Hardening. The API is that of v0.4.0 with two additions and one change in `xmltr
   v0.4.0 and still faster than the libraries it is compared with (`docs/methodology.md`).
 
 - Tests and examples of the stream patterns: a filter between a reader and a writer, and an island (one element
-  built as a tree in the middle of a pass-through) (`Example_filter`, `Example_island`).
+  built as a tree in the middle of a pass-through) (`Example_filter` in `xmlwriter`, `Example_island` in `xmltree`).
 - Measured: 1 GB from the reader to the writer in 14 MB of process memory, 1.2 MB of heap
   (`docs/results/streaming-memory.txt`).
 - Tests of determinism (10 runs, input split in any way) and of parallel use of separate readers, writers and
@@ -25,6 +25,11 @@ Hardening. The API is that of v0.4.0 with two additions and one change in `xmltr
 - `tools/compare`: the tree next to `beevik/etree` and `antchfx/xmlquery` on generated documents and on the W3C
   suite; method in `docs/methodology.md`, raw results in `docs/results/`.
 - `tools/evidence`: the evidence package (requirements, tests, the table of criteria K1–K9).
+- The repository has four files at the top: `go.mod`, `LICENSE`, `NOTICE`, `README.md`. The module no longer has
+  a package at its root (it held only documentation); the tests of the whole repository are in
+  `internal/project`, the changelog in `docs/`.
+- README: a comparison with etree and xmlquery (conformance, sizes, times, memory, features), with the method
+  and raw results in the repository.
 
 ## v0.4.0 (2026-11-27)
 
@@ -52,7 +57,7 @@ The tree.
 - Changed in `xmlreader`: the declaration `xmlns:xml="http://www.w3.org/XML/1998/namespace"` is returned among the
   namespace declarations of its element (`Token.Namespaces`, `DeclaredNamespaces`) like any other; until v0.3.0
   it was left out, so it was lost when a document was read and written back. The scope does not change.
-- Tests of hostile and pathological inputs for the reader, the writer and the tree (`safety_test.go`).
+- Tests of hostile and pathological inputs for the reader, the writer and the tree (`internal/project/safety_test.go`).
 
 ## v0.3.0 (2026-11-27)
 

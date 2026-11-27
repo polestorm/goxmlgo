@@ -42,7 +42,7 @@ type Ref struct {
 // Key to klucz wyniku testu: ścieżka importu pakietu i nazwa testu najwyższego poziomu.
 func (r Ref) Key() string { return r.Package + "." + r.Test }
 
-// Te same reguły co w TestRequirementsCovered (requirements_test.go w katalogu głównym): prefiksy z tabeli
+// Te same reguły co w TestRequirementsCovered (internal/project/requirements_test.go): prefiksy z tabeli
 // w requirements/README.md, a identyfikatorem jest wszystko, co tak wygląda, także z prefiksem spoza tabeli.
 var (
 	prefixRow = regexp.MustCompile("^\\| `([A-Z]{2,5})` \\|")

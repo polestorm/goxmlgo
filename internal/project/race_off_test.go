@@ -1,5 +1,5 @@
 //go:build !race
 
-package goxmlgo
+package project
 
 const raceEnabled = false

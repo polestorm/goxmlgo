@@ -1,4 +1,4 @@
-# GOXMLGO_STREAM_MB=1024 go test . -run '^TestStreamingMemory$' -count=1 -v
+# GOXMLGO_STREAM_MB=1024 go test ./internal/project -run '^TestStreamingMemory$' -count=1 -v
 # date: 2026-11-27T12:38Z
 # goxmlgo: 3d2dbc3
 # go1.26.6 darwin/arm64, Apple M4, macOS 27.0.1

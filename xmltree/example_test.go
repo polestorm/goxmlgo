@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/polestorm/goxmlgo/xmlreader"
@@ -130,4 +131,49 @@ func ExampleDocument_ByID() {
 	// Output:
 	// World 1 35
 	// 1:20: id-duplicate: the identifier "x" is used by two elements
+}
+
+// An island: the document flows from the reader to the writer, and only the element to change is built as a
+// tree. The memory needed is that of the largest island, not of the document.
+func Example_island() {
+	const src = `<list xmlns:p="urn:example:p"><p:item n="1"><p:v>10</p:v></p:item><other/><p:item n="2"><p:v>20</p:v></p:item></list>`
+
+	r := xmlreader.New(strings.NewReader(src), xmlreader.Options{})
+	w := xmlwriter.New(os.Stdout, xmlwriter.Options{})
+	for {
+		t, err := r.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		if t.Kind == xmlreader.KindStartElement && t.Name.Local == "item" {
+			item, err := xmltree.ReadElement(r, t, xmltree.Options{})
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			v := item.FirstChild()
+			sum := xmltree.NewElement(xmltree.Name{Space: "urn:example:p", Local: "double", Prefix: "p"})
+			n, _ := strconv.Atoi(v.Text())
+			sum.SetText(strconv.Itoa(2 * n))
+			item.Append(sum)
+			if err := item.WriteTo(w); err != nil {
+				fmt.Println(err)
+				return
+			}
+			continue
+		}
+		if err := w.WriteToken(t); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	if err := w.Close(); err != nil {
+		fmt.Println(err)
+	}
+	// Output:
+	// <list xmlns:p="urn:example:p"><p:item n="1"><p:v>10</p:v><p:double>20</p:double></p:item><other/><p:item n="2"><p:v>20</p:v><p:double>40</p:double></p:item></list>
 }

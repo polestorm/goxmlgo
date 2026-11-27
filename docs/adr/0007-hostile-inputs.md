@@ -27,7 +27,7 @@ przeniesionego z `goxsdgo` (ten sam kod w v0.1.0…v0.3.0).
    (strumień 1 727 przypadków bez zmian, `TestTokenStreamStable`). Wpis w `../differences.md` i w CHANGELOG.
 3. **Miara pamięci w SAFE-003 to szczyt sterty** ponad stan sprzed wywołania, nie suma przydziałów: bufor tekstu
    rośnie przez podwajanie, więc suma dla tokenu na granicy limitu 16 MiB to ok. 95 MB, a szczyt 48 MB.
-4. **Wymagania SAFE-001…006 są przyjęte** i mają testy w pakiecie głównym (`safety_test.go`): `TestNoIOImports`,
+4. **Wymagania SAFE-001…006 są przyjęte** i mają testy w `internal/project` (`safety_test.go`): `TestNoIOImports`,
    `TestSafeByDefault`, `TestHostileInputs`, `TestPathological`.
 
 ## Pomiary (2026-11-27, commit `9b1b779`; Apple M4, w tle biegł fuzzing na dwóch rdzeniach)

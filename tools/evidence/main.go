@@ -136,9 +136,9 @@ func build(root, candidate string, streamMB int, now time.Time) (*Evidence, map[
 	var streamRun *TestRun
 	if streamMB > 0 {
 		size := "GOXMLGO_STREAM_MB=" + strconv.Itoa(streamMB)
-		out := runCmd(root, append(testEnv(), size), "go", "test", ".", "-run", "^TestStreamingMemory$", "-count=1", "-json")
+		out := runCmd(root, append(testEnv(), size), "go", "test", "./internal/project", "-run", "^TestStreamingMemory$", "-count=1", "-json")
 		raw["go-test-stream.json"] = out
-		streamRun, err = parseTestEvents("plik "+strconv.Itoa(streamMB)+" MB (K7)", size+" go test . -run '^TestStreamingMemory$' -count=1 -json", bytes.NewReader(out))
+		streamRun, err = parseTestEvents("plik "+strconv.Itoa(streamMB)+" MB (K7)", size+" go test ./internal/project -run '^TestStreamingMemory$' -count=1 -json", bytes.NewReader(out))
 		if err != nil {
 			return nil, nil, err
 		}

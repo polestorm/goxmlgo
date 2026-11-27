@@ -1,4 +1,4 @@
-package goxmlgo
+package project
 
 import (
 	"bytes"
@@ -89,104 +89,6 @@ func corpus(t testing.TB) map[string][]byte {
 		t.Fatalf("only %d corpus documents", len(out))
 	}
 	return out
-}
-
-// A filter between a reader and a writer: one element is dropped with Skip, an attribute value and a text are
-// changed, and an element is added. The document is never held in memory.
-func Example_filter() {
-	const src = `<orders><order id="1" state="new"><note>draft</note><internal>cost 7</internal></order><order id="2" state="new"/></orders>`
-
-	r := xmlreader.New(strings.NewReader(src), xmlreader.Options{})
-	w := xmlwriter.New(os.Stdout, xmlwriter.Options{})
-	inNote := false
-	for {
-		t, err := r.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		switch {
-		case t.Kind == xmlreader.KindStartElement && t.Name.Local == "internal":
-			if err := r.Skip(); err != nil { // the element and everything in it is passed over
-				fmt.Println(err)
-				return
-			}
-			continue
-		case t.Kind == xmlreader.KindStartElement && t.Name.Local == "order":
-			for i := range t.Attrs {
-				if t.Attrs[i].Name.Local == "state" {
-					t.Attrs[i].Value = "sent"
-				}
-			}
-		case t.Kind == xmlreader.KindStartElement && t.Name.Local == "note":
-			inNote = true
-		case t.Kind == xmlreader.KindEndElement && t.Name.Local == "note":
-			inNote = false
-		case t.Kind == xmlreader.KindText && inNote:
-			t.Data = bytes.ToUpper(t.Data)
-		case t.Kind == xmlreader.KindEndElement && t.Name.Local == "orders":
-			w.Start(xmlwriter.Name{Local: "count"}) // added before the end tag of the root
-			w.Text("2")
-			w.End()
-		}
-		if err := w.WriteToken(t); err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-	if err := w.Close(); err != nil {
-		fmt.Println(err)
-	}
-	// Output:
-	// <orders><order id="1" state="sent"><note>DRAFT</note></order><order id="2" state="sent"/><count>2</count></orders>
-}
-
-// An island: the document flows from the reader to the writer, and only the element to change is built as a
-// tree. The memory needed is that of the largest island, not of the document.
-func Example_island() {
-	const src = `<list xmlns:p="urn:example:p"><p:item n="1"><p:v>10</p:v></p:item><other/><p:item n="2"><p:v>20</p:v></p:item></list>`
-
-	r := xmlreader.New(strings.NewReader(src), xmlreader.Options{})
-	w := xmlwriter.New(os.Stdout, xmlwriter.Options{})
-	for {
-		t, err := r.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		if t.Kind == xmlreader.KindStartElement && t.Name.Local == "item" {
-			item, err := xmltree.ReadElement(r, t, xmltree.Options{})
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			v := item.FirstChild()
-			sum := xmltree.NewElement(xmltree.Name{Space: "urn:example:p", Local: "double", Prefix: "p"})
-			n, _ := strconv.Atoi(v.Text())
-			sum.SetText(strconv.Itoa(2 * n))
-			item.Append(sum)
-			if err := item.WriteTo(w); err != nil {
-				fmt.Println(err)
-				return
-			}
-			continue
-		}
-		if err := w.WriteToken(t); err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-	if err := w.Close(); err != nil {
-		fmt.Println(err)
-	}
-	// Output:
-	// <list xmlns:p="urn:example:p"><p:item n="1"><p:v>10</p:v><p:double>20</p:double></p:item><other/><p:item n="2"><p:v>20</p:v><p:double>40</p:double></p:item></list>
 }
 
 // TestFilter: usunięcie elementu przez Skip, zmiana wartości atrybutu i tekstu oraz dopisanie elementów w strumieniu
@@ -335,7 +237,7 @@ func TestIsland(t *testing.T) {
 // dokument ma 100 MB; zmienna GOXMLGO_STREAM_MB ustawia inny rozmiar (1024 dla pomiaru K7: plik 1 GB w < 64 MB
 // pamięci procesu). Dokument powstaje w generatorze i nie jest trzymany w pamięci. Szczyt sterty musi być
 // poniżej 8 MB; przy rozmiarze podanym przez zmienną sprawdzana jest też pamięć pobrana od systemu przez cały
-// proces testu (uruchom wtedy tylko ten test: go test . -run TestStreamingMemory -v).
+// proces testu (uruchom wtedy tylko ten test: go test ./internal/project -run TestStreamingMemory -v).
 // REQ: DET-006 STR-003
 func TestStreamingMemory(t *testing.T) {
 	mb, dedicated := 100, false

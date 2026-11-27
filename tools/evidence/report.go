@@ -100,10 +100,12 @@ type Inputs struct {
 }
 
 const (
-	pkgRoot   = "github.com/polestorm/goxmlgo"
-	pkgReader = pkgRoot + "/xmlreader"
-	pkgWriter = pkgRoot + "/xmlwriter"
-	pkgTree   = pkgRoot + "/xmltree"
+	pkgModule = "github.com/polestorm/goxmlgo"
+	// pkgRoot: pakiet z testami całego repozytorium (do v0.4.0 był nim pakiet główny modułu)
+	pkgRoot   = pkgModule + "/internal/project"
+	pkgReader = pkgModule + "/xmlreader"
+	pkgWriter = pkgModule + "/xmlwriter"
+	pkgTree   = pkgModule + "/xmltree"
 )
 
 // Progi z ADR 0001 (tabela kryteriów gotowości).
@@ -281,7 +283,7 @@ func buildCriteria(in Inputs) []Criterion {
 
 	// K4
 	k4 := Criterion{ID: "K4", Name: "wymagania i API", Target: "każde przyjęte wymaganie ma test, testy przechodzą; każde REQ: wskazuje istniejące wymaganie; publiczne API równe wzorcom api/*.txt",
-		Source: "requirements/*.md, odwołania REQ: w testach i korpusie, TestRequirementsCovered, TestAPISnapshot (pakiet główny), macierz śledzenia w tym pakiecie"}
+		Source: "requirements/*.md, odwołania REQ: w testach i korpusie, TestRequirementsCovered, TestAPISnapshot (internal/project), macierz śledzenia w tym pakiecie"}
 	counts := map[string]int{}
 	accepted := 0
 	for _, t := range in.Traces {
@@ -321,7 +323,7 @@ func buildCriteria(in Inputs) []Criterion {
 
 	// K6
 	k6 := Criterion{ID: "K6", Name: "bezpieczeństwo", Target: "bez sieci i plików; encje zewnętrzne nigdy nie czytane; limity domyślnie włączone; wrogie wejścia odrzucone w < 1 s i < 64 MB; czas liniowy (podwojenie rozmiaru najwyżej 2,5×)",
-		Source: "TestSafeByDefault, TestHostileInputs, TestPathological, TestNoIOImports (pakiet główny); granice czasu i pamięci sprawdza sam test, czasy są w surowym wyniku przebiegu"}
+		Source: "TestSafeByDefault, TestHostileInputs, TestPathological, TestNoIOImports (internal/project); granice czasu i pamięci sprawdza sam test, czasy są w surowym wyniku przebiegu"}
 	var k6Results, k6Parts []string
 	for _, name := range []string{"TestSafeByDefault", "TestHostileInputs", "TestPathological", "TestNoIOImports"} {
 		res := in.result(pkgRoot + "." + name)
@@ -336,7 +338,7 @@ func buildCriteria(in Inputs) []Criterion {
 	k7 := Criterion{ID: "K7", Name: "wydajność i pamięć",
 		Target: fmt.Sprintf("czytnik ≥ %.2f× czytnika goxsdgo v0.3.0; przelot czytnik → pisarz ≥ %.2f× samego czytnika i nie wolniej niż przelot encoding/xml; plik 1 GB przez czytnik → pisarz w < %d MB; liczba alokacji nie rośnie z rozmiarem dokumentu",
 			k7ReaderRatio, k7PassOfReader, k7MemoryLimitMB),
-		Source: benchFile + " (tools/bench), " + memoryFile + " (GOXMLGO_STREAM_MB=1024), TestStreamingMemory (pakiet główny), wymaganie DET-007 w macierzy śledzenia"}
+		Source: benchFile + " (tools/bench), " + memoryFile + " (GOXMLGO_STREAM_MB=1024), TestStreamingMemory (internal/project), wymaganie DET-007 w macierzy śledzenia"}
 	streamKey, streamName := pkgRoot+".TestStreamingMemory", "TestStreamingMemory"
 	if in.result(streamKey) == "" && in.result(pkgReader+".TestStreamingMemory") != "" {
 		// przed etapem 5 test był tylko w xmlreader (sam czytnik)
