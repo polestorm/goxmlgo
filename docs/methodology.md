@@ -93,8 +93,8 @@ from it, the fastest and the slowest round, and the allocations of one more read
 goxmlgo divided by the speed of goxsdgo v0.3.0 on the same document; K7 requires at least 0.95 for every
 document, and the tool exits with status 1 below that.
 
-**Result** of 2026-11-27 ([`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt), commit `445e58e`,
-v0.4.0 and the tests of stage 5): 1.24 on the JPK-like document and 1.19 on the WordprocessingML-like one (1.22 and 1.19 on the commit of stage
+**Result** of 2026-11-27 ([`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt), commit `3d2dbc3`):
+1.23 on the JPK-like document and 1.20 on the WordprocessingML-like one (1.22 and 1.19 on the commit of stage
 2, `96c7949`).
 
 The same module has `TestSameAsGoxsdgo` (`go -C tools/bench test ./...`), which reads every file of the corpus and
@@ -130,8 +130,8 @@ CDATA sections and empty-element tags; `Encoder` rewrites namespace prefixes and
 ([`differences.md`](differences.md)). **Threshold** (K7, since 2026-11-27): on every document the pass-through of
 goxmlgo is at least 0.55 of the speed of its reader alone and not slower than the encoding/xml pass-through; the
 tool exits with status 1 below that. The threshold is relative because a speed in MB/s depends on the machine and
-on the document. Result of 2026-11-27 (commit `445e58e`): 158 MB/s on the JPK-like document and 82 MB/s on the
-WordprocessingML-like one, that is 0.62 and 0.67 of the speed of the reader alone and 1.84 and 1.21 times the speed
+on the document. Result of 2026-11-27 (commit `3d2dbc3`): 158 MB/s on the JPK-like document and 82 MB/s on the
+WordprocessingML-like one, that is 0.62 and 0.67 of the speed of the reader alone and 1.82 and 1.21 times the speed
 of the encoding/xml pass-through.
 
 **Allocations.** `go test ./xmlwriter -run TestWriterAllocations -v`: a document written with calls allocates
@@ -155,7 +155,7 @@ the reader to the writer and to a writer that only counts. Two numbers are taken
 its size before the run, sampled every 200 µs with the collector set to keep the heap near the live data, and the
 memory the whole test process obtained from the operating system (`runtime.MemStats.Sys`) at the end. The test
 fails above 8 MB of heap or 64 MB for the process. Result of 2026-11-27
-([`results/streaming-memory.txt`](results/streaming-memory.txt), commit `445e58e`): 1030 MB read, 1.2 MB peak
+([`results/streaming-memory.txt`](results/streaming-memory.txt), commit `3d2dbc3`): 1030 MB read, 1.2 MB peak
 heap, 14 MB for the process. Without the variable the same test runs on 100 MB in every `go test`.
 
 **Hostile and pathological inputs (criterion K6).** `go test . -run 'TestHostileInputs|TestPathological' -v`.
@@ -192,20 +192,21 @@ xmltree reads the cases of the XML 1.0 recommendation without namespace processi
 does; the other two have no such setting.
 
 **Result** of 2026-11-27 ([`results/tree-vs-others.txt`](results/tree-vs-others.txt),
-[`results/tree-conformance.tsv`](results/tree-conformance.tsv); commit `445e58e`):
+[`results/tree-conformance.tsv`](results/tree-conformance.tsv); commit `3d2dbc3`):
 
 | | xmltree | etree | xmlquery |
 |---|---|---|---|
-| build, JPK-like document | 189 MB/s | 84 MB/s | 57 MB/s |
-| build, WordprocessingML-like document | 100 MB/s | 74 MB/s | 45 MB/s |
-| write, JPK-like / WordprocessingML-like | 565 / 327 MB/s | 570 / 297 MB/s | 219 / 115 MB/s |
-| allocations per build, JPK-like | 1 557 | 1 660 102 | 2 980 122 |
-| heap held by the tree, JPK-like / WordprocessingML-like | 6.8× / 11.5× the document | 4.3× / 6.5× | 6.7× / 8.4× |
+| build, JPK-like document | 187 MB/s | 84 MB/s | 56 MB/s |
+| build, WordprocessingML-like document | 94 MB/s | 73 MB/s | 45 MB/s |
+| write, JPK-like / WordprocessingML-like | 567 / 328 MB/s | 566 / 298 MB/s | 243 / 116 MB/s |
+| allocations per build, JPK-like | 1 566 | 1 660 102 | 2 980 119 |
+| heap held by the tree, JPK-like / WordprocessingML-like | 4.8× / 7.2× the document | 4.3× / 6.5× | 6.7× / 8.4× |
 | well-formed documents accepted (of 776) | 775 | 712 | 711 |
 | ill-formed documents rejected (of 951) | 951 | 410 | 432 |
 
-xmltree builds faster and checks more, and it holds more memory: a node keeps its line and column, every
-attribute its type, position and namespace name, and names are kept with prefix and namespace name.
+xmltree builds faster and checks more, and it holds about a tenth more memory than etree: a node keeps its line
+and column, every attribute its type and position, and names are kept with prefix and namespace name. In v0.4.0
+a tree took 6.8 and 11.5 times the document.
 
 ## Known limits of the numbers
 

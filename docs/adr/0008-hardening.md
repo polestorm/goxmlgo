@@ -55,29 +55,30 @@ nie zmienia; etap dodaje testy, narzędzia i pomiary.
    `tools/compare` przestaje obowiązywać; moduł zostaje osobny, bo ma zależności, których `tools/bench` nie
    potrzebuje. Moduł, który zależy od `goxmlgo`, musi deklarować co najmniej tę samą wersję.
 
-## Pomiary (2026-11-27, commit `445e58e`; Apple M4, Go 1.26.6)
+## Pomiary (2026-11-27, commit `3d2dbc3`; Apple M4, Go 1.26.6)
 
 - K7, przelot 1 GB: 1030 MB wejścia, szczyt sterty 1,2 MB, pamięć procesu 14 MB
   (`../results/streaming-memory.txt`).
+- K7, czytnik i przelot (`../results/reader-vs-goxsdgo.txt`): czytnik 1,23× i 1,20× czytnika `goxsdgo` v0.3.0;
+  przelot 158 i 82 MB/s, czyli 0,62 i 0,67 czytnika oraz 1,82× i 1,21× `encoding/xml`.
 - Wyspa na każdym wierszu dokumentu: szczyt sterty 1,2 MB dla 20 tys. i dla 80 tys. wierszy (`TestIsland`).
-- Drzewo wobec innych bibliotek (`../results/tree-vs-others.txt`, `../results/tree-conformance.tsv`):
+- Drzewo wobec innych bibliotek (`../results/tree-vs-others.txt`, `../results/tree-conformance.tsv`), po
+  zmniejszeniu elementu i atrybutów (ADR 0006, pkt 15):
 
   | | `xmltree` | `etree` | `xmlquery` |
   |---|---|---|---|
-  | budowa, styl JPK | 189 MB/s | 84 MB/s | 57 MB/s |
-  | budowa, styl WordML | 100 MB/s | 74 MB/s | 45 MB/s |
-  | zapis, styl JPK / WordML | 565 / 327 MB/s | 570 / 297 MB/s | 219 / 115 MB/s |
-  | alokacje budowy, styl JPK | 1 557 | 1 660 102 | 2 980 122 |
-  | pamięć drzewa, styl JPK / WordML | 6,8× / 11,5× dokumentu | 4,3× / 6,5× | 6,7× / 8,4× |
+  | budowa, styl JPK | 187 MB/s | 84 MB/s | 56 MB/s |
+  | budowa, styl WordML | 94 MB/s | 73 MB/s | 45 MB/s |
+  | zapis, styl JPK / WordML | 567 / 328 MB/s | 566 / 298 MB/s | 243 / 116 MB/s |
+  | alokacje budowy, styl JPK | 1 566 | 1 660 102 | 2 980 119 |
+  | pamięć drzewa, styl JPK / WordML | 4,8× / 7,2× dokumentu | 4,3× / 6,5× | 6,7× / 8,4× |
   | dobrze uformowane przyjęte (z 776) | 775 | 712 | 711 |
   | źle uformowane odrzucone (z 951) | 951 | 410 | 432 |
 
-  Pierwszy przebieg, z drzewa roboczego na obciążonej maszynie, dał liczby bezwzględne o ok. 40% niższe przy tych
-  samych stosunkach między kandydatami.
-- K7 czytnika i przelotu na tym samym commicie (`../results/reader-vs-goxsdgo.txt`): czytnik 1,24× i 1,19×
-  czytnika `goxsdgo` v0.3.0; przelot 158 i 82 MB/s, czyli 0,62 i 0,67 czytnika oraz 1,84× i 1,21× `encoding/xml`.
-- Fuzzing: 40 minut na czystym commicie v0.4.0, 76 mln wykonań, bez błędu (`../fuzzing.md`); do K5 brakuje
-  ok. 23 godzin.
+  Na commicie `445e58e` (układ węzła z v0.4.0) te same pomiary dały budowę 189 i 100 MB/s oraz pamięć 6,8×
+  i 11,5× dokumentu: zmniejszenie drzewa kosztowało 1% szybkości budowy w stylu JPK i 6% w stylu WordML.
+- Fuzzing: lokalnie 40 minut na czystym v0.4.0 (76 mln wykonań) i 40 minut na drzewie roboczym po zmianach
+  drzewa (98 mln), bez błędu; kampania 24 h dla `3d2dbc3` zlecona na Synology (`../fuzzing.md`).
 
 ## Konsekwencje
 

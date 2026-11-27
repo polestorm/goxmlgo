@@ -13,7 +13,8 @@ Hardening. The API is that of v0.4.0 with two additions and one change in `xmltr
   size of the document (v0.4.0: 6.8 and 11.5). No change of behaviour.
 - Changed in `xmltree`: attributes are kept in a compact form, so `Node.Attrs` returns a new slice (in v0.4.0 it
   was a view of the tree). New: `Node.NumAttrs` and `Node.AttrAt` read attributes without allocating. A tree of
-  the WordprocessingML-like document takes 7.2 times its size.
+  the WordprocessingML-like document takes 7.2 times its size. Building a tree is 1% to 6% slower than in
+  v0.4.0 and still faster than the libraries it is compared with (`docs/methodology.md`).
 
 - Tests and examples of the stream patterns: a filter between a reader and a writer, and an island (one element
   built as a tree in the middle of a pass-through) (`Example_filter`, `Example_island`).

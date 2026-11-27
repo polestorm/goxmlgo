@@ -63,7 +63,7 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 | Data | Commit | Host i sprzęt | Fuzzer | Czas zegarowy | Wykonania | Wynik |
 |---|---|---|---|---|---|---|
 | 2026-11-26 | `96c7949` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader` | zlecone 23:37, nie rozpoczęte | — | wycofane z kolejki 2026-11-27 przed startem: etap 3 zmienił kod czytnika, więc przebieg nie liczyłby się do K5; zastąpione kampanią `247615e` |
-| 2026-11-27 | `247615e` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader`, `FuzzRoundTrip`, `FuzzWriter` | zlecone 08:21, 3 × 475 min, 3 workery | — | w kolejce za kampaniami `gohighlightgo`, `gomermaidgo`, `goxsdgo` i `gozipgo`; wynik dopisze `tools/fuzz -import` |
+| 2026-11-27 | `247615e` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader`, `FuzzRoundTrip`, `FuzzWriter` | zlecone 08:21, 3 × 475 min, 3 workery | — | nie rozpoczęte: awaria zasilania 2026-11-27 skasowała kolejkę; nie zlecone ponownie, bo commit nie ma drzewa ani późniejszych zmian czytnika |
 | 2026-11-27 09:56 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzReader` | 10m2s | 11265187 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
 | 2026-11-27 10:06 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzTree` | 10m2s | 10713648 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
 | 2026-11-27 10:16 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzRoundTrip` | 10m3s | 13798644 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
@@ -76,6 +76,7 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 | 2026-11-27 12:56 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzTree` (./xmltree) | 10m3s | 19088258 | ok |
 | 2026-11-27 13:07 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzRoundTrip` (./xmlwriter) | 10m1s | 27983639 | ok |
 | 2026-11-27 13:17 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzWriter` (./xmlwriter) | 10m2s | 26511160 | ok |
+| 2026-11-27 | `3d2dbc3` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader`, `FuzzTree`, `FuzzRoundTrip`, `FuzzWriter` | zlecone 13:37, 4 × 356 min, 3 workery | — | w kolejce za kampanią `gozipgo`; wynik dopisze `tools/fuzz -import` |
 
 ## Znalezione błędy
 

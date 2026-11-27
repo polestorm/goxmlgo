@@ -1,5 +1,5 @@
 # go -C tools/compare test . -run TestCandidatesConformance -conformance-out ../../docs/results/tree-conformance.tsv
-# goxmlgo: 445e58e; candidates: github.com/antchfx/xmlquery v1.5.2, github.com/beevik/etree v1.8.1, encoding/xml of go1.26.6 (go.sum of tools/compare)
+# goxmlgo: 3d2dbc3; candidates: github.com/antchfx/xmlquery v1.5.2, github.com/beevik/etree v1.8.1, encoding/xml of go1.26.6 (go.sum of tools/compare)
 # W3C XML Conformance Test Suite, cases in scope of goxmlgo: 776 well-formed, 951 not well-formed; each document is given to the function that builds a tree, with default settings; goxmlgo reads the cases of the XML 1.0 recommendation without namespace processing, as in its own conformance test
 candidate	well-formed_accepted	well-formed_total	not-well-formed_rejected	not-well-formed_accepted	not-well-formed_total	panics
 goxmlgo xmltree	775	776	951	0	951	0

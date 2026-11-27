@@ -1,18 +1,18 @@
 # go -C tools/compare run . -root ../.. -rounds 9
-# date: 2026-11-27T11:04Z
-# goxmlgo: 445e58e
+# date: 2026-11-27T12:38Z
+# goxmlgo: 3d2dbc3
 # candidates: github.com/antchfx/xmlquery v1.5.2, github.com/beevik/etree v1.8.1, encoding/xml of go1.26.6 (go.sum of tools/compare)
 # go1.26.6 darwin/arm64, 10 CPU, one goroutine
 # machine: Apple M4, 27.0.1, Darwin 27.0.0
 # per document: median of 9 rounds, candidates alternate within a round; held = heap in use by the built tree after a collection
 document	bytes	candidate	build_ms	build_MB/s	build_allocs	build_bytes	held_bytes	held/document	write_ms	write_MB/s
-GenJPK(20000)	8781376	goxmlgo xmltree	46.50	188.9	1557	60727304	59784304	6.8	15.53	565.3
-GenJPK(20000)	8781376	beevik/etree	104.32	84.2	1660102	67801992	38113768	4.3	15.42	569.6
-GenJPK(20000)	8781376	antchfx/xmlquery	155.11	56.6	2980126	120262608	58808776	6.7	40.04	219.3
-GenJPK(20000)	8781376	goxmlgo xmlreader (no tree)	34.48	254.7	-	-	-	-	-	-
-GenJPK(20000)	8781376	encoding/xml Decoder.Token (no tree)	96.25	91.2	-	-	-	-	-	-
-GenWordML(30000)	9308048	goxmlgo xmltree	93.38	99.7	182921	107255952	106663912	11.5	28.47	327.0
-GenWordML(30000)	9308048	beevik/etree	126.20	73.8	2790090	110887608	60837520	6.5	31.35	296.9
-GenWordML(30000)	9308048	antchfx/xmlquery	207.21	44.9	5100113	175455728	78481864	8.4	81.04	114.9
-GenWordML(30000)	9308048	goxmlgo xmlreader (no tree)	76.09	122.3	-	-	-	-	-	-
-GenWordML(30000)	9308048	encoding/xml Decoder.Token (no tree)	115.31	80.7	-	-	-	-	-	-
+GenJPK(20000)	8781376	goxmlgo xmltree	47.02	186.8	1566	43423808	42477152	4.8	15.50	566.6
+GenJPK(20000)	8781376	beevik/etree	104.64	83.9	1660102	67801976	38113752	4.3	15.52	565.9
+GenJPK(20000)	8781376	antchfx/xmlquery	156.25	56.2	2980119	120262088	58808624	6.7	36.21	242.5
+GenJPK(20000)	8781376	goxmlgo xmlreader (no tree)	34.61	253.7	-	-	-	-	-	-
+GenJPK(20000)	8781376	encoding/xml Decoder.Token (no tree)	97.35	90.2	-	-	-	-	-	-
+GenWordML(30000)	9308048	goxmlgo xmltree	98.79	94.2	182930	67906440	67310728	7.2	28.40	327.8
+GenWordML(30000)	9308048	beevik/etree	127.38	73.1	2790090	110887608	60837520	6.5	31.27	297.7
+GenWordML(30000)	9308048	antchfx/xmlquery	208.66	44.6	5100116	175455968	78482088	8.4	80.29	115.9
+GenWordML(30000)	9308048	goxmlgo xmlreader (no tree)	76.52	121.6	-	-	-	-	-	-
+GenWordML(30000)	9308048	encoding/xml Decoder.Token (no tree)	115.49	80.6	-	-	-	-	-	-

@@ -21,5 +21,5 @@ obciążonej maszynie (liczby bezwzględne o ok. 20% niższe, stosunki 0,64 i 0,
 oba progi spełnione), więc zapisany zostaje przebieg z `247615e`. `xmlreader-bench.txt` pochodzi z drzewa po
 etapie 2 sprzed pierwszego commitu.
 
-Wszystkie pliki z 2026-11-27 poza `xmlreader-bench.txt` i `transfer-goxsdgo-tests.txt` pochodzą z commitu `445e58e`
-(kod biblioteki jak w v0.4.0), z jednej sesji pomiarów.
+Wszystkie pliki z 2026-11-27 poza `xmlreader-bench.txt` i `transfer-goxsdgo-tests.txt` pochodzą z commitu `3d2dbc3`,
+z jednej sesji pomiarów (wcześniejsza sesja, na `445e58e` z układem drzewa z v0.4.0, jest w historii repozytorium).
