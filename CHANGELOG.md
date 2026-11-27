@@ -2,7 +2,7 @@
 
 All release tags of this repository are signed (`git tag -s`); check one with `git tag -v vX.Y.Z`.
 
-## Unreleased (to be v0.4.0)
+## v0.4.0 (2026-11-27)
 
 The tree.
 

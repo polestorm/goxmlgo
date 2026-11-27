@@ -278,24 +278,43 @@ func run(root, logDir string, f fuzzer, d time.Duration, parallel int) result {
 	return res
 }
 
-// appendJournal dopisuje wiersze do tabeli dziennika; plik powinien kończyć się tabelą (docs/fuzzing.md).
+// appendJournal dopisuje wiersze do tabeli pod nagłówkiem „## Przebiegi” dziennika (kolumny: data, commit, host
+// i sprzęt, fuzzer, czas zegarowy, wykonania, wynik). Gdy dziennik nie ma takiej tabeli, wiersze trafiają na koniec.
 func appendJournal(path string, rs []result) error {
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o644)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
+	var rows []string
 	for _, r := range rs {
 		status := "ok"
 		if !r.ok {
 			status = "**błąd**: " + r.detail
 		}
-		if r.host != "" {
-			status += " (" + r.host + ")"
+		host := r.host
+		if host == "" {
+			host = fmt.Sprintf("lokalnie, %s/%s, %d CPU", runtime.GOOS, runtime.GOARCH, runtime.NumCPU())
 		}
-		fmt.Fprintf(f, "| %s | `%s`%s | %s | `%s` | %s | %d | %s |\n", r.start.Format("2006-01-02 15:04"), r.commit,
-			map[bool]string{true: " (zmiany)", false: ""}[r.modified], r.pkg, r.name,
-			r.elapsed.Round(time.Second), r.execs, status)
+		rows = append(rows, fmt.Sprintf("| %s | `%s`%s | %s | `%s` (%s) | %s | %d | %s |", r.start.Format("2006-01-02 15:04"), r.commit,
+			map[bool]string{true: " (zmiany)", false: ""}[r.modified], host, r.name, r.pkg,
+			r.elapsed.Round(time.Second), r.execs, status))
 	}
-	return nil
+	data, err := os.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	lines := strings.Split(strings.TrimRight(string(data), "\n"), "\n")
+	at := len(lines)
+	for i, l := range lines {
+		if strings.TrimSpace(l) != "## Przebiegi" {
+			continue
+		}
+		j := i + 1
+		for j < len(lines) && !strings.HasPrefix(lines[j], "|") {
+			j++
+		}
+		for j < len(lines) && strings.HasPrefix(lines[j], "|") {
+			j++
+		}
+		at = j
+		break
+	}
+	out := append(append(append([]string{}, lines[:at]...), rows...), lines[at:]...)
+	return os.WriteFile(path, []byte(strings.Join(out, "\n")+"\n"), 0o644)
 }

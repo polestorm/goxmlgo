@@ -30,7 +30,7 @@ przeniesionego z `goxsdgo` (ten sam kod w v0.1.0…v0.3.0).
 4. **Wymagania SAFE-001…006 są przyjęte** i mają testy w pakiecie głównym (`safety_test.go`): `TestNoIOImports`,
    `TestSafeByDefault`, `TestHostileInputs`, `TestPathological`.
 
-## Pomiary (2026-11-27, drzewo robocze na `2b6c2ae`; Apple M4, w tle biegł fuzzing na dwóch rdzeniach)
+## Pomiary (2026-11-27, commit `9b1b779`; Apple M4, w tle biegł fuzzing na dwóch rdzeniach)
 
 - `TestHostileInputs`: 18 rodzin wejść przez czytnik i przez `xmltree.Parse`, 2 przez limit węzłów drzewa, 6 ciągów
   wywołań pisarza. Każde odrzucone właściwym kodem; najdłuższe 0,18 s (wartość atrybutu 17 MB), największy szczyt
