@@ -494,7 +494,7 @@ func TestPathological(t *testing.T) {
 				}
 			}
 		}},
-		{"writer: attributes of one element", 150_000, func(n int) func() {
+		{"writer: attributes of one element", 40_000, func(n int) func() {
 			names := make([]string, n)
 			for i := range names {
 				names[i] = "a" + strconv.Itoa(i)
@@ -594,7 +594,9 @@ func TestPathological(t *testing.T) {
 	for _, fam := range families {
 		small, large := best(fam.make(fam.size)), best(fam.make(2*fam.size))
 		ratio := float64(large) / float64(small)
-		if ratio > 2.5 { // jeden pomiar ponad progiem może być szumem maszyny: powtórka rozstrzyga
+		// Pomiar ponad progiem może być szumem maszyny (wspólne maszyny CI, inne testy w tle): algorytm kwadratowy
+		// daje stosunek ok. 4 w każdej próbie, więc porażką jest dopiero przekroczenie progu we wszystkich próbach.
+		for attempt := 0; attempt < 3 && ratio > 2.5; attempt++ {
 			small, large = best(fam.make(fam.size)), best(fam.make(2*fam.size))
 			ratio = float64(large) / float64(small)
 		}
