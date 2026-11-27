@@ -49,19 +49,66 @@ type Node struct {
 
 type elem struct {
 	first, last *Node
-	name        Name
-	attrs       []Attr
-	namespaces  []Binding
+	// name wskazuje nazwę przechowywaną raz na budowę (elementy o tej samej nazwie dzielą jeden zapis); nazwa pod
+	// wskaźnikiem nigdy nie jest zmieniana w miejscu, SetName podstawia nowy wskaźnik.
+	name  *Name
+	attrs []Attr
+	// ns: deklaracje przestrzeni nazw i zapamiętany kontekst; nil u elementów, które nie mają ani jednego,
+	// ani drugiego (czyli u większości).
+	ns *nsData
+}
+
+type nsData struct {
+	decls []Binding
 	// context: przestrzenie nazw, które były w zakresie nad węzłem w miejscu, z którego go wyjęto albo wczytano
 	// (ReadElement, Remove, Clone), posortowane według prefiksu, z wpisem {"", ""}, gdy przestrzeń domyślna nie
 	// była związana. nil: węzeł nie ma zapamiętanego miejsca. Wycinek nigdy nie jest zmieniany w miejscu.
 	context []Binding
 }
 
+func (e *elem) nm() Name {
+	if e.name == nil {
+		return Name{}
+	}
+	return *e.name
+}
+
+func (e *elem) decls() []Binding {
+	if e.ns == nil {
+		return nil
+	}
+	return e.ns.decls
+}
+
+func (e *elem) ctx() []Binding {
+	if e.ns == nil {
+		return nil
+	}
+	return e.ns.context
+}
+
+func (e *elem) setDecls(d []Binding) {
+	if e.ns == nil {
+		if len(d) == 0 {
+			return
+		}
+		e.ns = &nsData{}
+	}
+	e.ns.decls = d
+}
+
+func (e *elem) setCtx(c []Binding) {
+	if e.ns == nil {
+		e.ns = &nsData{}
+	}
+	e.ns.context = c
+}
+
 // withElem to węzeł razem z danymi elementu w jednym przydziale pamięci.
 type withElem struct {
-	n Node
-	e elem
+	n    Node
+	e    elem
+	name Name
 }
 
 func newNode(kind Kind) *Node {
@@ -71,6 +118,19 @@ func newNode(kind Kind) *Node {
 	x := &withElem{}
 	x.n.kind, x.n.el = kind, &x.e
 	return &x.n
+}
+
+// newNamed tworzy element albo PI z nazwą we własnym przydziale węzła.
+func newNamed(kind Kind, name Name) *Node {
+	x := &withElem{name: name}
+	x.n.kind, x.n.el, x.e.name = kind, &x.e, &x.name
+	return &x.n
+}
+
+// setName podstawia węzłowi nowy zapis nazwy: dotychczasowy może być wspólny z innymi elementami tej samej budowy
+// albo z kopią węzła, więc nie wolno go zmieniać w miejscu.
+func (n *Node) setName(name Name) {
+	n.el.name = &Name{Space: name.Space, Local: name.Local, Prefix: name.Prefix}
 }
 
 // Odczyt danych elementu z węzła dowolnego rodzaju: węzeł bez nich daje wartości puste.
@@ -93,20 +153,20 @@ func (n *Node) declared() []Binding {
 	if n.el == nil {
 		return nil
 	}
-	return n.el.namespaces
+	return n.el.decls()
 }
 
 func (n *Node) remembered() []Binding {
 	if n.el == nil {
 		return nil
 	}
-	return n.el.context
+	return n.el.ctx()
 }
 
 // NewElement returns an element without a parent. It is written as <a/> until it gets children (SelfClosing).
 func NewElement(name Name) *Node {
-	n := newNode(KindElement)
-	n.el.name, n.selfClosing = name, true
+	n := newNamed(KindElement, name)
+	n.selfClosing = true
 	return n
 }
 
@@ -121,8 +181,8 @@ func NewComment(data string) *Node { return &Node{kind: KindComment, data: data}
 
 // NewProcInst returns a processing instruction.
 func NewProcInst(target, data string) *Node {
-	n := newNode(KindProcInst)
-	n.el.name.Local, n.data = target, data
+	n := newNamed(KindProcInst, Name{Local: target})
+	n.data = data
 	return n
 }
 
@@ -134,7 +194,7 @@ func (n *Node) Name() Name {
 	if n.el == nil {
 		return Name{}
 	}
-	return n.el.name
+	return n.el.nm()
 }
 
 // Data returns the text of a text node, the content of a comment or the data of a processing instruction.
@@ -204,7 +264,7 @@ func (n *Node) SetName(name Name) error {
 	if n == nil || (n.kind != KindElement && n.kind != KindProcInst) {
 		return nodeErr(CodeNodeKind, n, "only an element and a processing instruction have a name")
 	}
-	n.el.name = name
+	n.setName(name)
 	return nil
 }
 
@@ -381,7 +441,7 @@ func (n *Node) SetNamespaces(declarations []Binding) error {
 	if n == nil || n.kind != KindElement {
 		return nodeErr(CodeNodeKind, n, "only an element has namespace declarations")
 	}
-	n.el.namespaces = append([]Binding(nil), declarations...)
+	n.el.setDecls(append([]Binding(nil), declarations...))
 	return nil
 }
 
@@ -392,13 +452,14 @@ func (n *Node) DeclareNamespace(prefix, uri string) error {
 		return nodeErr(CodeNodeKind, n, "only an element has namespace declarations")
 	}
 	e := n.el
-	for i := range e.namespaces {
-		if e.namespaces[i].Prefix == prefix {
-			e.namespaces[i].URI = uri
+	d := e.decls()
+	for i := range d {
+		if d[i].Prefix == prefix {
+			d[i].URI = uri
 			return nil
 		}
 	}
-	e.namespaces = append(e.namespaces[:len(e.namespaces):len(e.namespaces)], Binding{Prefix: prefix, URI: uri})
+	e.setDecls(append(d[:len(d):len(d)], Binding{Prefix: prefix, URI: uri}))
 	return nil
 }
 
@@ -407,7 +468,7 @@ func (n *Node) DeclareNamespace(prefix, uri string) error {
 func (n *Node) Clone() *Node {
 	root := n.shallow()
 	if n.kind == KindElement {
-		root.el.context = n.scopeAbove()
+		root.el.setCtx(n.scopeAbove())
 	}
 	src, dst := n, root
 	for {
@@ -438,12 +499,15 @@ func (n *Node) shallow() *Node {
 	c := newNode(n.kind)
 	c.data, c.line, c.column, c.cdata, c.selfClosing = n.data, n.line, n.column, n.cdata, n.selfClosing
 	if n.el != nil && c.el != nil {
-		c.el.name, c.el.context = n.el.name, n.el.context
+		c.el.name = n.el.name // nazwa pod wskaźnikiem jest niezmienna, więc kopia może ją dzielić
 		if len(n.el.attrs) > 0 {
 			c.el.attrs = append([]Attr(nil), n.el.attrs...)
 		}
-		if len(n.el.namespaces) > 0 {
-			c.el.namespaces = append([]Binding(nil), n.el.namespaces...)
+		if n.el.ns != nil {
+			c.el.ns = &nsData{context: n.el.ns.context}
+			if len(n.el.ns.decls) > 0 {
+				c.el.ns.decls = append([]Binding(nil), n.el.ns.decls...)
+			}
 		}
 	}
 	return c
@@ -513,7 +577,7 @@ func (n *Node) link(child, before *Node) {
 // traci rodzica.
 func (n *Node) unlink(child *Node) {
 	if child.kind == KindElement {
-		child.el.context = child.scopeAbove()
+		child.el.setCtx(child.scopeAbove())
 	}
 	if child.prev != nil {
 		child.prev.next = child.next

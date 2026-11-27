@@ -50,6 +50,11 @@ nie zmienia; etap dodaje testy, narzędzia i pomiary.
    i że dla danych niezaufanych trzeba go obniżyć. Koszt prefiksów automatycznych pisarza ogranicza
    `MaxNamespaces` (256); bez zmian.
 
+8. **Najniższa wersja Go to 1.26** (pytanie 11, decyzja właściciela z 2026-11-27, od v0.5.0). Wszystkie moduły
+   repozytorium deklarują `go 1.26`, a CI ma jedną wersję. Powód podany w pkt 5 dla osobnego modułu
+   `tools/compare` przestaje obowiązywać; moduł zostaje osobny, bo ma zależności, których `tools/bench` nie
+   potrzebuje. Moduł, który zależy od `goxmlgo`, musi deklarować co najmniej tę samą wersję.
+
 ## Pomiary (2026-11-27, commit `445e58e`; Apple M4, Go 1.26.6)
 
 - K7, przelot 1 GB: 1030 MB wejścia, szczyt sterty 1,2 MB, pamięć procesu 14 MB

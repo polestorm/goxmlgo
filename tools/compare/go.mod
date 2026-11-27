@@ -1,6 +1,6 @@
 module github.com/polestorm/goxmlgo/tools/compare
 
-go 1.23.0
+go 1.26
 
 require (
 	github.com/antchfx/xmlquery v1.5.2

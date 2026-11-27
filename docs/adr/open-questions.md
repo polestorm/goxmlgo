@@ -26,8 +26,10 @@ Kolejność według etapu, w którym pytanie blokuje pracę.
 10. **Wybieranie węzłów.** Proste ścieżki (`a/b/@c`) albo podzbiór XPath. `goxsdgo` ma własny podzbiór dla
     ograniczeń tożsamości, `goxadesgo` potrzebuje wyszukiwania po identyfikatorze. Rekomendacja: poza zakresem,
     dopóki nie ma dwóch konsumentów tej samej funkcji; w 1.0 tylko iteracja po dzieciach i `ByID`.
-11. **Najniższa wersja Go.** `goxsdgo` deklaruje 1.22, `goxadesgo` 1.24. Iteratory (`range` po funkcji) wymagają
-    1.23. Rekomendacja: 1.22 i API bez iteratorów, żeby nie podnosić wymagań konsumentom.
+11. ~~Najniższa wersja Go.~~ Rozstrzygnięte 2026-11-27 przez właściciela: Go 1.26 (od v0.5.0). Go 1.22 jest poza
+    wsparciem, a jego utrzymanie podwajało macierz CI i wymusiło osobny moduł na porównania. Konsumenci
+    (`goxsdgo`, `godocxgo`) podnoszą swoje minimum razem z przejściem na tę wersję `goxmlgo`
+    ([ADR 0008](0008-hardening.md), pkt 8).
 12. **Jak długo żyje pakiet aliasów `goxsdgo/xmlreader`.** Decyzja należy do `goxsdgo`; rekomendacja: do `goxsdgo`
     1.0, oznaczony jako przestarzały od pierwszego wydania po przełączeniu.
 13. ~~Cel szybkości przelotu (K7).~~ Rozstrzygnięte 2026-11-27: próg względny zamiast „≥ 100 MB/s”: przelot
@@ -44,11 +46,9 @@ Kolejność według etapu, w którym pytanie blokuje pracę.
     domyślną 256 zamiast 1024 ([ADR 0007](0007-hostile-inputs.md)).
 18. **Pamięć drzewa przy limicie domyślnym** (2 mln węzłów to do ok. 420 MB dla 8 MB wejścia) i koszt prefiksów
     automatycznych pisarza: [ADR 0007](0007-hostile-inputs.md), „Co zostaje do etapu 5”.
-19. **Pamięć drzewa wobec innych bibliotek.** Porównanie z 2026-11-27: drzewo `goxmlgo` buduje się 1,3–3,4 razy
-    szybciej niż `etree` i `xmlquery`, ale zajmuje 6,8× i 11,5× rozmiaru dokumentu, a `etree` 4,3× i 6,5×. Układ
-    węzła jest prywatny (ADR 0006), więc da się go zmniejszyć bez zmiany API, z jednym wyjątkiem. Możliwe kroki,
-    od najtańszego: (a) nazwa elementu jako wskaźnik na nazwę przechowywaną raz (element 208 → ok. 170 B);
-    (b) deklaracje i kontekst przestrzeni nazw w strukturze przydzielanej tylko elementom, które je mają
-    (→ ok. 130 B); (c) atrybuty w postaci zwartej (ok. 40 B zamiast 112): wymaga, żeby `Attrs()` oddawało kopię
-    albo żeby doszło `NumAttrs`/`AttrAt`, czyli zmiany API z v0.4.0. Rekomendacja: (a) i (b) w ramach etapu 5,
-    z pomiarem przed i po; (c) osobną decyzją, bo zmienia API i koszt dostępu do atrybutów.
+19. **Pamięć drzewa wobec innych bibliotek.** Kroki (a) i (b) zrobione 2026-11-27 za zgodą właściciela (nazwa
+    elementu przechowywana raz, dane przestrzeni nazw tylko tam, gdzie są): pamięć drzewa spadła z 6,8× do 4,8×
+    rozmiaru dokumentu (styl JPK; `etree` 4,3×) i z 11,5× do 8,1× (styl WordML; `etree` 6,5×), przy budowie
+    wolniejszej o ok. 2% ([ADR 0006](0006-tree.md), pkt 15 i pomiary). Zostaje krok (c): atrybuty w postaci zwartej
+    (ok. 40 B zamiast 112), który wymaga, żeby `Attrs()` oddawało kopię albo żeby doszło `NumAttrs`/`AttrAt`,
+    czyli zmiany API z v0.4.0. Czeka na decyzję właściciela.

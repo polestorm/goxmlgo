@@ -1,6 +1,6 @@
 module github.com/polestorm/goxmlgo/tools/bench
 
-go 1.22
+go 1.26
 
 require (
 	github.com/polestorm/goxmlgo v0.0.0

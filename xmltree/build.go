@@ -113,7 +113,7 @@ func ReadElement(src xmlreader.TokenReader, start xmlreader.Token, opts Options)
 		return nil, err
 	}
 	if sc, ok := src.(interface{ InScopeNamespaces() []Binding }); ok {
-		n.el.context = contextFrom(sc.InScopeNamespaces(), n.el.namespaces)
+		n.el.setCtx(contextFrom(sc.InScopeNamespaces(), n.el.decls()))
 	}
 	if err := b.run(n); err != nil {
 		return nil, err
@@ -178,6 +178,11 @@ type builder struct {
 	nextSlab int
 	attrs    []Attr
 	bindings []Binding
+	// names: nazwy przechowywane raz. recent to mała tablica ostatnio użytych, pytana przed mapą: czytnik oddaje
+	// te same nazwy tymi samymi napisami, więc porównanie trafionej pozycji kosztuje kilka porównań wskaźników.
+	names    map[Name]*Name
+	recent   [64]*Name
+	nameSlab []Name
 	text     []byte    // dane węzłów czekających na napis porcji
 	pending  []textRef // węzły, których dane leżą w text
 }
@@ -220,7 +225,7 @@ func (b *builder) element(t *xmlreader.Token) (*Node, error) {
 		return nil, err
 	}
 	e := n.el
-	e.name, n.selfClosing = t.Name, t.SelfClosing
+	e.name, n.selfClosing = b.name(&t.Name), t.SelfClosing
 	if k := len(t.Attrs); k > 0 {
 		if k > len(b.attrs) {
 			b.attrs = make([]Attr, max(k, attrSlab))
@@ -233,11 +238,38 @@ func (b *builder) element(t *xmlreader.Token) (*Node, error) {
 		if k > len(b.bindings) {
 			b.bindings = make([]Binding, max(k, bindingSlab))
 		}
-		e.namespaces = b.bindings[:k:k]
+		d := b.bindings[:k:k]
 		b.bindings = b.bindings[k:]
-		copy(e.namespaces, t.Namespaces)
+		copy(d, t.Namespaces)
+		e.ns = &nsData{decls: d}
 	}
 	return n, nil
+}
+
+// name zwraca wskaźnik na zapis nazwy wspólny dla wszystkich węzłów tej budowy o tej nazwie.
+func (b *builder) name(n *Name) *Name {
+	slot := (len(n.Local)*31 + len(n.Prefix)*7 + len(n.Space)) & 63
+	if len(n.Local) > 0 {
+		slot = (slot + int(n.Local[0])*13 + int(n.Local[len(n.Local)-1])*5) & 63
+	}
+	if p := b.recent[slot]; p != nil && *p == *n {
+		return p
+	}
+	p, ok := b.names[*n]
+	if !ok {
+		if b.names == nil {
+			b.names = map[Name]*Name{}
+		}
+		if len(b.nameSlab) == 0 {
+			b.nameSlab = make([]Name, 32)
+		}
+		p = &b.nameSlab[0]
+		b.nameSlab = b.nameSlab[1:]
+		*p = *n
+		b.names[*n] = p
+	}
+	b.recent[slot] = p
+	return p
 }
 
 // setData zapisuje dane węzła: krótkie do wspólnej porcji tekstu, długie od razu jako własny napis.
@@ -332,7 +364,7 @@ func (b *builder) read(top *Node) error {
 			if n, err = b.node(KindProcInst, t.Line, t.Column); err != nil {
 				return err
 			}
-			n.el.name = Name{Local: t.Name.Local}
+			n.el.name = b.name(&Name{Local: t.Name.Local})
 			b.setData(n, t.Data)
 		case xmlreader.KindDoctype:
 			if b.doc != nil {

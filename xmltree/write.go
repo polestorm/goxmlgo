@@ -46,10 +46,10 @@ func (n *Node) WriteTo(w *xmlwriter.Writer) error {
 				break
 			}
 			if extra := fix.element(c); len(extra) == 0 {
-				err = w.Start(c.el.name, c.el.namespaces...)
+				err = w.Start(c.el.nm(), c.el.decls()...)
 			} else {
-				all = append(append(all[:0], c.el.namespaces...), extra...)
-				err = w.Start(c.el.name, all...)
+				all = append(append(all[:0], c.el.decls()...), extra...)
+				err = w.Start(c.el.nm(), all...)
 			}
 			for i := 0; err == nil && i < len(c.el.attrs); i++ {
 				err = w.Attr(c.el.attrs[i].Name, c.el.attrs[i].Value)
@@ -70,7 +70,7 @@ func (n *Node) WriteTo(w *xmlwriter.Writer) error {
 		case KindComment:
 			err = w.Comment(c.data)
 		case KindProcInst:
-			err = w.ProcInst(c.el.name.Local, c.data)
+			err = w.ProcInst(c.el.nm().Local, c.data)
 		default:
 			err = nodeErr(CodeNodeKind, c, "unknown kind of node")
 		}
@@ -120,7 +120,7 @@ func (r *Reader) Next() (xmlreader.Token, error) {
 	if n := r.pending; n != nil {
 		r.pending = nil
 		r.scope.Pop()
-		return xmlreader.Token{Kind: xmlreader.KindEndElement, Name: n.el.name}, nil
+		return xmlreader.Token{Kind: xmlreader.KindEndElement, Name: n.el.nm()}, nil
 	}
 	for {
 		n, enter := r.it.next()
@@ -131,9 +131,9 @@ func (r *Reader) Next() (xmlreader.Token, error) {
 		case KindElement:
 			if !enter {
 				r.scope.Pop()
-				return xmlreader.Token{Kind: xmlreader.KindEndElement, Name: n.el.name}, nil
+				return xmlreader.Token{Kind: xmlreader.KindEndElement, Name: n.el.nm()}, nil
 			}
-			decls := n.el.namespaces
+			decls := n.el.decls()
 			if extra := r.fix.element(n); len(extra) > 0 {
 				r.all = append(append(r.all[:0], decls...), extra...)
 				decls = r.all
@@ -143,7 +143,7 @@ func (r *Reader) Next() (xmlreader.Token, error) {
 			if empty {
 				r.pending = n
 			}
-			return xmlreader.Token{Kind: xmlreader.KindStartElement, Name: n.el.name, Attrs: n.el.attrs, Namespaces: decls,
+			return xmlreader.Token{Kind: xmlreader.KindStartElement, Name: n.el.nm(), Attrs: n.el.attrs, Namespaces: decls,
 				SelfClosing: empty && n.selfClosing, Line: n.line, Column: n.column}, nil
 		case KindText:
 			if (n.data == "" && !n.cdata) || (n.parent != nil && n.parent.kind == KindDocument) {
@@ -157,7 +157,7 @@ func (r *Reader) Next() (xmlreader.Token, error) {
 			return xmlreader.Token{Kind: xmlreader.KindComment, Data: r.data, Line: n.line, Column: n.column}, nil
 		case KindProcInst:
 			r.data = append(r.data[:0], n.data...)
-			return xmlreader.Token{Kind: xmlreader.KindProcInst, Name: Name{Local: n.el.name.Local}, Data: r.data,
+			return xmlreader.Token{Kind: xmlreader.KindProcInst, Name: Name{Local: n.el.nm().Local}, Data: r.data,
 				Line: n.line, Column: n.column}, nil
 		case KindDocument:
 		default:

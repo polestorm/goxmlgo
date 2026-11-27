@@ -15,13 +15,17 @@ func (n *Node) LookupNamespace(prefix string) (string, bool) {
 		if e.el == nil {
 			continue
 		}
-		for i := len(e.el.namespaces) - 1; i >= 0; i-- {
-			if b := &e.el.namespaces[i]; b.Prefix == prefix {
+		ns := e.el.ns
+		if ns == nil {
+			continue
+		}
+		for i := len(ns.decls) - 1; i >= 0; i-- {
+			if b := &ns.decls[i]; b.Prefix == prefix {
 				return b.URI, b.URI != ""
 			}
 		}
-		for i := range e.el.context {
-			if b := &e.el.context[i]; b.Prefix == prefix {
+		for i := range ns.context {
+			if b := &ns.context[i]; b.Prefix == prefix {
 				return b.URI, b.URI != ""
 			}
 		}
@@ -84,11 +88,12 @@ func (n *Node) visible(own bool) []Binding {
 			continue
 		}
 		if own || e != n {
-			for i := len(e.el.namespaces) - 1; i >= 0; i-- {
-				add(e.el.namespaces[i])
+			d := e.el.decls()
+			for i := len(d) - 1; i >= 0; i-- {
+				add(d[i])
 			}
 		}
-		for _, b := range e.el.context {
+		for _, b := range e.el.ctx() {
 			add(b)
 		}
 	}
@@ -114,11 +119,13 @@ type fixer struct {
 func (f *fixer) element(n *Node) []Binding {
 	e := n.el
 	f.extra = f.extra[:0]
-	for i := range e.context {
-		f.need(e, e.context[i].Prefix, e.context[i].URI)
+	if e.ns != nil {
+		for i := range e.ns.context {
+			f.need(e, e.ns.context[i].Prefix, e.ns.context[i].URI)
+		}
 	}
-	if e.name.Space != "" || e.name.Prefix == "" {
-		f.need(e, e.name.Prefix, e.name.Space)
+	if name := e.name; name != nil && (name.Space != "" || name.Prefix == "") {
+		f.need(e, name.Prefix, name.Space)
 	}
 	for i := range e.attrs {
 		if a := &e.attrs[i]; a.Name.Space != "" && a.Name.Prefix != "" {
@@ -134,9 +141,11 @@ func (f *fixer) need(e *elem, prefix, uri string) {
 	if prefix == "xml" || prefix == "xmlns" {
 		return
 	}
-	for i := range e.namespaces {
-		if e.namespaces[i].Prefix == prefix {
-			return
+	if e.ns != nil {
+		for i := range e.ns.decls {
+			if e.ns.decls[i].Prefix == prefix {
+				return
+			}
 		}
 	}
 	for i := range f.extra {

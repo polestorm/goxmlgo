@@ -4,7 +4,13 @@ All release tags of this repository are signed (`git tag -s`); check one with `g
 
 ## Unreleased
 
-Hardening; no change to the library code or its API since v0.4.0.
+Hardening. The API is that of v0.4.0.
+
+- The module needs Go 1.26 (v0.4.0 and earlier: Go 1.22). A module that depends on it has to declare at least
+  the same version.
+- `xmltree` takes less memory: an element shares the record of its name with the other elements of that name
+  and keeps namespace data only when it has any. On the generated documents a tree takes 4.8 and 8.1 times the
+  size of the document (v0.4.0: 6.8 and 11.5). No change of behaviour.
 
 - Tests and examples of the stream patterns: a filter between a reader and a writer, and an island (one element
   built as a tree in the middle of a pass-through) (`Example_filter`, `Example_island`).
