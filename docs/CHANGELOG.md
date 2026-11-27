@@ -2,7 +2,7 @@
 
 All release tags of this repository are signed (`git tag -s`); check one with `git tag -v vX.Y.Z`.
 
-## Unreleased
+## v0.5.0 (2026-11-27)
 
 Hardening. The API is that of v0.4.0 with two additions and one change in `xmltree`, listed below.
 

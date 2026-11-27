@@ -68,8 +68,7 @@ Against `encoding/xml` itself, reading token by token: goxmlgo reads the same tw
 
 ## Status
 
-Version 0.4.0 is released; the main branch is the candidate for 0.5.0 (smaller trees, Go 1.26). The API may still
-change before 1.0. What is left before 1.0 is a 24-hour fuzzing campaign and the move of the first consumers
+Version 0.5.0. The API may still change before 1.0. What is left before 1.0 is a 24-hour fuzzing campaign and the move of the first consumers
 ([docs/roadmap.md](docs/roadmap.md), [docs/CHANGELOG.md](docs/CHANGELOG.md)). Requires Go 1.26 or newer.
 
 ## Packages
