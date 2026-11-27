@@ -900,8 +900,8 @@ func TestTreeReader(t *testing.T) {
 }
 
 // TestAccessors: odczyt i zmiana danych węzła idą przez metody; metoda niepasująca do rodzaju węzła jest błędem
-// i niczego nie zmienia, a rodzaj węzła nie zmienia się nigdy. Wycinki z Attrs i Namespaces są widokami:
-// dopisanie do nich nie zmienia drzewa ani sąsiedniego elementu.
+// i niczego nie zmienia, a rodzaj węzła nie zmienia się nigdy. Attrs oddaje kopię, Namespaces widok o pojemności
+// równej długości: zmiana ani dopisanie do nich nie zmienia drzewa ani sąsiedniego elementu.
 // REQ: TR-003 TR-007 TR-015
 func TestAccessors(t *testing.T) {
 	d := parse(t, `<a x="1" xmlns:p="urn:p"><b y="2" xmlns:q="urn:q"/>text<![CDATA[c]]><!--k--><?pi d?><e/></a>`)
@@ -987,6 +987,45 @@ func TestAccessors(t *testing.T) {
 		t.Error("SetAttrs or SetNamespaces keeps the slice of the caller")
 	}
 
+	// atrybuty: Attrs oddaje kopię, NumAttrs i AttrAt czytają bez alokacji i oddają to samo co Attrs
+	d = parse(t, "<!DOCTYPE r [<!ATTLIST r i ID #IMPLIED d CDATA 'dflt'>]>\n<r xmlns:p='urn:p' i='x'\n   p:a='1'/>")
+	r := d.Root()
+	list := r.Attrs()
+	if r.NumAttrs() != 3 || len(list) != 3 {
+		t.Fatalf("%d attributes, Attrs gives %d", r.NumAttrs(), len(list))
+	}
+	for i, want := range []Attr{
+		{Name: Name{Local: "i"}, Value: "x", Type: xmlreader.AttrTypeID, Specified: true, Line: 2, Column: 20},
+		{Name: Name{Space: "urn:p", Local: "a", Prefix: "p"}, Value: "1", Specified: true, Line: 3, Column: 4},
+		{Name: Name{Local: "d"}, Value: "dflt", Type: xmlreader.AttrTypeCDATA},
+	} {
+		got := r.AttrAt(i)
+		if got.Name != want.Name || got.Value != want.Value || got.Type != want.Type || got.Specified != want.Specified ||
+			(want.Line != 0 && (got.Line != want.Line || got.Column != want.Column)) || got != list[i] {
+			t.Errorf("attribute %d: %+v, want %+v (Attrs gives %+v)", i, got, want, list[i])
+		}
+	}
+	if r.AttrAt(-1) != (Attr{}) || r.AttrAt(3) != (Attr{}) || text.NumAttrs() != 0 || text.AttrAt(0) != (Attr{}) {
+		t.Error("AttrAt outside the attributes")
+	}
+	list[0].Value, list[0].Name.Local = "changed", "changed"
+	if v, ok := r.Attr("", "i"); !ok || v != "x" {
+		t.Error("a change of the slice from Attrs changed the tree")
+	}
+	if a := testing.AllocsPerRun(20, func() {
+		for i := 0; i < r.NumAttrs(); i++ {
+			_ = r.AttrAt(i)
+		}
+		_, _ = r.Attr("urn:p", "a")
+	}); a != 0 {
+		t.Errorf("NumAttrs, AttrAt and Attr allocate %v times", a)
+	}
+	// typ spoza stałych czytnika i nazwy ustawione przez SetAttrs wracają bez zmian
+	custom := []Attr{{Name: Name{Local: "k"}, Value: "v", Type: "MY-TYPE", Line: 7, Column: 9}}
+	if err := r.SetAttrs(custom); err != nil || r.AttrAt(0) != custom[0] {
+		t.Errorf("SetAttrs: %+v (%v)", r.AttrAt(0), err)
+	}
+
 	// widoki: elementy sąsiadujące w pamięci (jedna porcja atrybutów i deklaracji) nie widzą dopisań do widoku
 	d = parse(t, `<r><a x="1" xmlns:p="urn:p"/><b y="2" xmlns:q="urn:q"/></r>`)
 	first, second := child(t, d.Root(), 0), child(t, d.Root(), 1)
@@ -998,7 +1037,7 @@ func TestAccessors(t *testing.T) {
 	if got, want := str(t, d), `<r><a xmlns:p="urn:p" xmlns:n="urn:n" x="1" new="n"/><b xmlns:q="urn:q" y="2"/></r>`; got != want {
 		t.Errorf("appending to a view or to the first element changed its neighbour:\n got  %s\n want %s", got, want)
 	}
-	if a := second.Attrs(); len(a) != 1 || a[0].Name.Local != "y" || cap(a) != 1 || cap(first.Namespaces()) != len(first.Namespaces()) {
+	if a := second.Attrs(); len(a) != 1 || a[0].Name.Local != "y" || cap(first.Namespaces()) != len(first.Namespaces()) {
 		t.Errorf("attributes of the second element: %+v", a)
 	}
 }

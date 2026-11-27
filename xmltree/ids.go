@@ -16,7 +16,7 @@ import (
 // The index is not updated when the tree changes: call IndexIDs again after changes.
 func (d *Document) IndexIDs(attributes ...string) error {
 	d.ids = map[string]*Node{}
-	var where map[string]*Attr
+	var where map[string][2]int // identyfikator → wiersz i kolumna pierwszego atrybutu
 	for it := newWalk(&d.node); ; {
 		n, enter := it.next()
 		if n == nil {
@@ -26,8 +26,8 @@ func (d *Document) IndexIDs(attributes ...string) error {
 			continue
 		}
 		for i := range n.el.attrs {
-			a := &n.el.attrs[i]
-			v, ok := idValue(a, attributes)
+			a := n.el.attrs[i].public()
+			v, ok := idValue(&a, attributes)
 			if !ok || v == "" {
 				continue
 			}
@@ -36,14 +36,14 @@ func (d *Document) IndexIDs(attributes ...string) error {
 				first := where[v]
 				d.ids = nil
 				return &Error{Code: CodeIDDuplicate, Line: a.Line, Column: a.Column,
-					FirstLine: first.Line, FirstColumn: first.Column,
+					FirstLine: first[0], FirstColumn: first[1],
 					Message: "the identifier " + strconv.Quote(v) + " is used by two elements"}
 			}
 			if !dup {
 				if where == nil {
-					where = map[string]*Attr{}
+					where = map[string][2]int{}
 				}
-				d.ids[v], where[v] = n, a
+				d.ids[v], where[v] = n, [2]int{a.Line, a.Column}
 			}
 		}
 	}

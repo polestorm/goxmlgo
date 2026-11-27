@@ -52,7 +52,7 @@ type elem struct {
 	// name wskazuje nazwę przechowywaną raz na budowę (elementy o tej samej nazwie dzielą jeden zapis); nazwa pod
 	// wskaźnikiem nigdy nie jest zmieniana w miejscu, SetName podstawia nowy wskaźnik.
 	name  *Name
-	attrs []Attr
+	attrs []attr
 	// ns: deklaracje przestrzeni nazw i zapamiętany kontekst; nil u elementów, które nie mają ani jednego,
 	// ani drugiego (czyli u większości).
 	ns *nsData
@@ -64,6 +64,48 @@ type nsData struct {
 	// (ReadElement, Remove, Clone), posortowane według prefiksu, z wpisem {"", ""}, gdy przestrzeń domyślna nie
 	// była związana. nil: węzeł nie ma zapamiętanego miejsca. Wycinek nigdy nie jest zmieniany w miejscu.
 	context []Binding
+}
+
+// attr to atrybut w postaci zwartej (56 bajtów zamiast 112 bajtów typu publicznego Attr): nazwa jako wskaźnik na
+// zapis wspólny dla atrybutów o tej nazwie, typ jako wskaźnik na jedną ze stałych typów albo na własny napis.
+// Zapisy pod wskaźnikami są niezmienne.
+type attr struct {
+	name         *Name
+	value        string
+	typ          *string
+	line, column int
+	specified    bool
+}
+
+// attrTypes: typy atrybutów z DTD; tablica nie jest zmieniana.
+var attrTypes = [...]string{xmlreader.AttrTypeCDATA, xmlreader.AttrTypeID, xmlreader.AttrTypeIDREF, xmlreader.AttrTypeIDREFS,
+	xmlreader.AttrTypeENTITY, xmlreader.AttrTypeENTITIES, xmlreader.AttrTypeNMTOKEN, xmlreader.AttrTypeNMTOKENS,
+	xmlreader.AttrTypeNotation, xmlreader.AttrTypeEnumeration}
+
+func typePtr(t string) *string {
+	if t == "" {
+		return nil
+	}
+	for i := range attrTypes {
+		if attrTypes[i] == t {
+			return &attrTypes[i]
+		}
+	}
+	other := t // osobna zmienna: tylko ta gałąź przydziela pamięć, parametr zostaje na stosie
+	return &other
+}
+
+func (a *attr) public() Attr {
+	out := Attr{Name: *a.name, Value: a.value, Specified: a.specified, Line: a.line, Column: a.column}
+	if a.typ != nil {
+		out.Type = *a.typ
+	}
+	return out
+}
+
+// compact zamienia atrybut publiczny na zwarty; name daje wskaźnik na zapis nazwy.
+func compact(a *Attr, name *Name) attr {
+	return attr{name: name, value: a.Value, typ: typePtr(a.Type), line: a.Line, column: a.Column, specified: a.Specified}
 }
 
 func (e *elem) nm() Name {
@@ -142,7 +184,7 @@ func (n *Node) firstChild() *Node {
 	return n.el.first
 }
 
-func (n *Node) attrList() []Attr {
+func (n *Node) attrList() []attr {
 	if n.el == nil {
 		return nil
 	}
@@ -213,12 +255,31 @@ func (n *Node) Line() int { return n.line }
 // Column returns the column of the node in the source, from 1, in characters; zero as for Line.
 func (n *Node) Column() int { return n.column }
 
-// Attrs returns the attributes of an element, in document order. Namespace declarations are not attributes. The
-// slice is a view of the tree, valid until the attributes of the node are changed; change attributes with SetAttr,
-// RemoveAttr and SetAttrs.
+// Attrs returns the attributes of an element, in document order, as a new slice. Namespace declarations are not
+// attributes. Changing the slice does not change the tree; change attributes with SetAttr, RemoveAttr and
+// SetAttrs. To read attributes without allocating use NumAttrs and AttrAt, or Attr for one value.
 func (n *Node) Attrs() []Attr {
-	a := n.attrList()
-	return a[:len(a):len(a)]
+	list := n.attrList()
+	if len(list) == 0 {
+		return nil
+	}
+	out := make([]Attr, len(list))
+	for i := range list {
+		out[i] = list[i].public()
+	}
+	return out
+}
+
+// NumAttrs returns the number of attributes of an element.
+func (n *Node) NumAttrs() int { return len(n.attrList()) }
+
+// AttrAt returns the attribute at position i, from 0, in document order; the zero Attr when there is none.
+func (n *Node) AttrAt(i int) Attr {
+	list := n.attrList()
+	if i < 0 || i >= len(list) {
+		return Attr{}
+	}
+	return list[i].public()
 }
 
 // Namespaces returns the namespace declarations of an element, in document order; an empty URI with an empty
@@ -387,8 +448,8 @@ func (n *Node) Text() string {
 func (n *Node) Attr(space, local string) (string, bool) {
 	attrs := n.attrList()
 	for i := range attrs {
-		if a := &attrs[i]; a.Name.Local == local && a.Name.Space == space {
-			return a.Value, true
+		if a := &attrs[i]; a.name.Local == local && a.name.Space == space {
+			return a.value, true
 		}
 	}
 	return "", false
@@ -402,13 +463,14 @@ func (n *Node) SetAttr(name Name, value string) error {
 	}
 	e := n.el
 	for i := range e.attrs {
-		if a := &e.attrs[i]; a.Name.Local == name.Local && a.Name.Space == name.Space {
-			a.Value, a.Specified = value, true
+		if a := &e.attrs[i]; a.name.Local == name.Local && a.name.Space == name.Space {
+			a.value, a.specified = value, true
 			return nil
 		}
 	}
 	// wycinek mógł powstać z porcji wspólnej z innymi elementami: dopisanie zawsze kopiuje (pojemność = długość)
-	e.attrs = append(e.attrs[:len(e.attrs):len(e.attrs)], Attr{Name: name, Value: value, Specified: true})
+	e.attrs = append(e.attrs[:len(e.attrs):len(e.attrs)], attr{name: &Name{Space: name.Space, Local: name.Local, Prefix: name.Prefix},
+		value: value, specified: true})
 	return nil
 }
 
@@ -416,8 +478,8 @@ func (n *Node) SetAttr(name Name, value string) error {
 func (n *Node) RemoveAttr(space, local string) bool {
 	attrs := n.attrList()
 	for i := range attrs {
-		if a := &attrs[i]; a.Name.Local == local && a.Name.Space == space {
-			out := make([]Attr, 0, len(attrs)-1)
+		if a := &attrs[i]; a.name.Local == local && a.name.Space == space {
+			out := make([]attr, 0, len(attrs)-1)
 			n.el.attrs = append(append(out, attrs[:i]...), attrs[i+1:]...)
 			return true
 		}
@@ -431,7 +493,14 @@ func (n *Node) SetAttrs(attrs []Attr) error {
 	if n == nil || n.kind != KindElement {
 		return nodeErr(CodeNodeKind, n, "only an element has attributes")
 	}
-	n.el.attrs = append([]Attr(nil), attrs...)
+	// jedna tablica nazw na wywołanie: zapisy pod wskaźnikami należą do tego elementu
+	names := make([]Name, len(attrs))
+	list := make([]attr, len(attrs))
+	for i := range attrs {
+		names[i] = attrs[i].Name
+		list[i] = compact(&attrs[i], &names[i])
+	}
+	n.el.attrs = list
 	return nil
 }
 
@@ -501,7 +570,7 @@ func (n *Node) shallow() *Node {
 	if n.el != nil && c.el != nil {
 		c.el.name = n.el.name // nazwa pod wskaźnikiem jest niezmienna, więc kopia może ją dzielić
 		if len(n.el.attrs) > 0 {
-			c.el.attrs = append([]Attr(nil), n.el.attrs...)
+			c.el.attrs = append([]attr(nil), n.el.attrs...) // nazwy i typy pod wskaźnikami są niezmienne
 		}
 		if n.el.ns != nil {
 			c.el.ns = &nsData{context: n.el.ns.context}

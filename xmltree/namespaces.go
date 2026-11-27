@@ -128,8 +128,8 @@ func (f *fixer) element(n *Node) []Binding {
 		f.need(e, name.Prefix, name.Space)
 	}
 	for i := range e.attrs {
-		if a := &e.attrs[i]; a.Name.Space != "" && a.Name.Prefix != "" {
-			f.need(e, a.Name.Prefix, a.Name.Space)
+		if a := e.attrs[i].name; a.Space != "" && a.Prefix != "" {
+			f.need(e, a.Prefix, a.Space)
 		}
 	}
 	return f.extra

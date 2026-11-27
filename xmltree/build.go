@@ -176,7 +176,7 @@ type builder struct {
 	nodes    []Node
 	elems    []elem
 	nextSlab int
-	attrs    []Attr
+	attrs    []attr
 	bindings []Binding
 	// names: nazwy przechowywane raz. recent to mała tablica ostatnio użytych, pytana przed mapą: czytnik oddaje
 	// te same nazwy tymi samymi napisami, więc porównanie trafionej pozycji kosztuje kilka porównań wskaźników.
@@ -228,11 +228,13 @@ func (b *builder) element(t *xmlreader.Token) (*Node, error) {
 	e.name, n.selfClosing = b.name(&t.Name), t.SelfClosing
 	if k := len(t.Attrs); k > 0 {
 		if k > len(b.attrs) {
-			b.attrs = make([]Attr, max(k, attrSlab))
+			b.attrs = make([]attr, max(k, attrSlab))
 		}
 		e.attrs = b.attrs[:k:k] // pojemność równa długości: dopisanie atrybutu nie sięgnie do sąsiada
 		b.attrs = b.attrs[k:]
-		copy(e.attrs, t.Attrs)
+		for i := range t.Attrs {
+			e.attrs[i] = compact(&t.Attrs[i], b.name(&t.Attrs[i].Name))
+		}
 	}
 	if k := len(t.Namespaces); k > 0 {
 		if k > len(b.bindings) {

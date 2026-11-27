@@ -72,6 +72,10 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 | 2026-11-27 11:13 | `521cbc7` | lokalnie, darwin/arm64, 10 CPU | `FuzzTree` (./xmltree) | 10m1s | 16665038 | ok |
 | 2026-11-27 11:23 | `521cbc7` | lokalnie, darwin/arm64, 10 CPU | `FuzzRoundTrip` (./xmlwriter) | 10m1s | 27130983 | ok |
 | 2026-11-27 11:33 | `521cbc7` | lokalnie, darwin/arm64, 10 CPU | `FuzzWriter` (./xmlwriter) | 10m2s | 20194191 | ok |
+| 2026-11-27 12:46 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzReader` (./xmlreader) | 10m2s | 24142771 | ok |
+| 2026-11-27 12:56 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzTree` (./xmltree) | 10m3s | 19088258 | ok |
+| 2026-11-27 13:07 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzRoundTrip` (./xmlwriter) | 10m1s | 27983639 | ok |
+| 2026-11-27 13:17 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzWriter` (./xmlwriter) | 10m2s | 26511160 | ok |
 
 ## Znalezione błędy
 

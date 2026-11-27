@@ -46,9 +46,8 @@ Kolejność według etapu, w którym pytanie blokuje pracę.
     domyślną 256 zamiast 1024 ([ADR 0007](0007-hostile-inputs.md)).
 18. **Pamięć drzewa przy limicie domyślnym** (2 mln węzłów to do ok. 420 MB dla 8 MB wejścia) i koszt prefiksów
     automatycznych pisarza: [ADR 0007](0007-hostile-inputs.md), „Co zostaje do etapu 5”.
-19. **Pamięć drzewa wobec innych bibliotek.** Kroki (a) i (b) zrobione 2026-11-27 za zgodą właściciela (nazwa
-    elementu przechowywana raz, dane przestrzeni nazw tylko tam, gdzie są): pamięć drzewa spadła z 6,8× do 4,8×
-    rozmiaru dokumentu (styl JPK; `etree` 4,3×) i z 11,5× do 8,1× (styl WordML; `etree` 6,5×), przy budowie
-    wolniejszej o ok. 2% ([ADR 0006](0006-tree.md), pkt 15 i pomiary). Zostaje krok (c): atrybuty w postaci zwartej
-    (ok. 40 B zamiast 112), który wymaga, żeby `Attrs()` oddawało kopię albo żeby doszło `NumAttrs`/`AttrAt`,
-    czyli zmiany API z v0.4.0. Czeka na decyzję właściciela.
+19. ~~Pamięć drzewa wobec innych bibliotek.~~ Rozstrzygnięte 2026-11-27: trzy kroki zrobione za zgodą właściciela
+    (nazwa elementu przechowywana raz, dane przestrzeni nazw tylko tam, gdzie są, atrybuty w postaci zwartej
+    z `Attrs()` oddającym kopię). Pamięć drzewa: 4,8× dokumentu w stylu JPK i 7,2× w stylu WordML (v0.4.0: 6,8×
+    i 11,5×; `etree`: 4,3× i 6,5×) ([ADR 0006](0006-tree.md), pkt 15 i pomiary). Dalsze zmniejszanie wymagałoby
+    węższych pozycji węzła, czego nie robimy (pozycja ma być dokładna także w pliku o jednym bardzo długim wierszu).

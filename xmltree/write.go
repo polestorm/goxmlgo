@@ -52,7 +52,7 @@ func (n *Node) WriteTo(w *xmlwriter.Writer) error {
 				err = w.Start(c.el.nm(), all...)
 			}
 			for i := 0; err == nil && i < len(c.el.attrs); i++ {
-				err = w.Attr(c.el.attrs[i].Name, c.el.attrs[i].Value)
+				err = w.Attr(*c.el.attrs[i].name, c.el.attrs[i].value)
 			}
 			if err == nil && c.el.first == nil {
 				if c.selfClosing {
@@ -86,6 +86,7 @@ type Reader struct {
 	scope   xmlreader.NamespaceScope
 	fix     fixer
 	all     []Binding
+	attrs   []Attr
 	data    []byte
 	pending *Node // element bez dzieci, którego token końca jest następny
 }
@@ -143,7 +144,11 @@ func (r *Reader) Next() (xmlreader.Token, error) {
 			if empty {
 				r.pending = n
 			}
-			return xmlreader.Token{Kind: xmlreader.KindStartElement, Name: n.el.nm(), Attrs: n.el.attrs, Namespaces: decls,
+			r.attrs = r.attrs[:0]
+			for i := range n.el.attrs {
+				r.attrs = append(r.attrs, n.el.attrs[i].public())
+			}
+			return xmlreader.Token{Kind: xmlreader.KindStartElement, Name: n.el.nm(), Attrs: r.attrs, Namespaces: decls,
 				SelfClosing: empty && n.selfClosing, Line: n.line, Column: n.column}, nil
 		case KindText:
 			if (n.data == "" && !n.cdata) || (n.parent != nil && n.parent.kind == KindDocument) {

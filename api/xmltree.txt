@@ -106,6 +106,8 @@ func (n *Node) Append(child *Node) error
 
 func (n *Node) Attr(space, local string) (string, bool)
 
+func (n *Node) AttrAt(i int) Attr
+
 func (n *Node) Attrs() []Attr
 
 func (n *Node) Children() []*Node
@@ -139,6 +141,8 @@ func (n *Node) Name() Name
 func (n *Node) Namespaces() []Binding
 
 func (n *Node) NextSibling() *Node
+
+func (n *Node) NumAttrs() int
 
 func (n *Node) Parent() *Node
 
