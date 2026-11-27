@@ -64,6 +64,10 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 |---|---|---|---|---|---|---|
 | 2026-11-26 | `96c7949` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader` | zlecone 23:37, nie rozpoczęte | — | wycofane z kolejki 2026-11-27 przed startem: etap 3 zmienił kod czytnika, więc przebieg nie liczyłby się do K5; zastąpione kampanią `247615e` |
 | 2026-11-27 | `247615e` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader`, `FuzzRoundTrip`, `FuzzWriter` | zlecone 08:21, 3 × 475 min, 3 workery | — | w kolejce za kampaniami `gohighlightgo`, `gomermaidgo`, `goxsdgo` i `gozipgo`; wynik dopisze `tools/fuzz -import` |
+| 2026-11-27 09:56 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzReader` | 10m2s | 11265187 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
+| 2026-11-27 10:06 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzTree` | 10m2s | 10713648 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
+| 2026-11-27 10:16 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzRoundTrip` | 10m3s | 13798644 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
+| 2026-11-27 10:26 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzWriter` | 10m3s | 12516702 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
 
 ## Znalezione błędy
 
@@ -72,6 +76,3 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 | 2026-11-27 | `FuzzWriter` (przebieg sprawdzający, lokalnie) | tryb automatyczny zapisywał deklarację przestrzeni nazw wziętej z `Name.Space` bez sprawdzenia znaków: `<a xmlns="\x0f">`, którego czytnik nie przyjmuje | nazwa przestrzeni deklarowanej przez pisarza jest sprawdzana jak podana jawnie (WR-012) | `xmlwriter/testdata/fuzz/FuzzWriter/2fc1d81895408ef0`; przypadki w `TestAutoNamespaces` |
 | 2026-11-27 | `FuzzTree` (przebieg sprawdzający, lokalnie) | czytnik drzewa dawał token tekstu dla białych znaków na najwyższym poziomie dokumentu, którego czytnik po zapisie nie daje (strumień drzewa różny od strumienia zapisu) | czytnik drzewa pomija tekst na najwyższym poziomie; `WriteTo` nadal go zapisuje (ADR 0006, pkt 5) | `xmltree/testdata/fuzz/FuzzTree/d02a241bbb0f7fa8` |
 | 2026-11-27 | `FuzzTree` (przebieg sprawdzający, lokalnie) | czytnik drzewa oddawał deklarację `xmlns:xml` ustawioną na elemencie, której czytnik po zapisie nie oddaje w tokenie | przyczyną był wyjątek w czytniku: od v0.4.0 czytnik oddaje deklarację `xmlns:xml` jak każdą inną, więc wraca ona z zapisu (ADR 0006, pkt 16) | `xmltree/testdata/fuzz/FuzzTree/002bfc93e9510fb2` |
-| 2026-11-27 09:56 | `2b6c2ae` (zmiany) | ./xmlreader | `FuzzReader` | 10m2s | 11265187 | ok |
-| 2026-11-27 10:06 | `2b6c2ae` (zmiany) | ./xmltree | `FuzzTree` | 10m2s | 10713648 | ok |
-| 2026-11-27 10:16 | `2b6c2ae` (zmiany) | ./xmlwriter | `FuzzRoundTrip` | 10m3s | 13798644 | ok |
