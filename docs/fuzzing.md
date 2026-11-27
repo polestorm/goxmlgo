@@ -68,6 +68,10 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 | 2026-11-27 10:06 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzTree` | 10m2s | 10713648 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
 | 2026-11-27 10:16 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzRoundTrip` | 10m3s | 13798644 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
 | 2026-11-27 10:26 | `2b6c2ae` (zmiany) | Mac (Apple M4, 10 rdzeni), darwin/arm64, lokalnie na prośbę właściciela (Synology bez zasilania), 2 workery | `FuzzWriter` | 10m3s | 12516702 | ok; przebieg z drzewa ze zmianami (stan tuż przed `9b1b779`), nie liczy się do K5 |
+| 2026-11-27 11:03 | `521cbc7` | lokalnie, darwin/arm64, 10 CPU | `FuzzReader` (./xmlreader) | 10m2s | 12416118 | ok |
+| 2026-11-27 11:13 | `521cbc7` | lokalnie, darwin/arm64, 10 CPU | `FuzzTree` (./xmltree) | 10m1s | 16665038 | ok |
+| 2026-11-27 11:23 | `521cbc7` | lokalnie, darwin/arm64, 10 CPU | `FuzzRoundTrip` (./xmlwriter) | 10m1s | 27130983 | ok |
+| 2026-11-27 11:33 | `521cbc7` | lokalnie, darwin/arm64, 10 CPU | `FuzzWriter` (./xmlwriter) | 10m2s | 20194191 | ok |
 
 ## Znalezione błędy
 
