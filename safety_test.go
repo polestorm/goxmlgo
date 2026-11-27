@@ -247,7 +247,9 @@ func TestHostileInputs(t *testing.T) {
 		if !ok {
 			t.Errorf("%s, %s: %v, want code %q", name, what, err, want)
 		}
-		if d > hostileTime || alloc > hostileBytes {
+		// Kod błędu obowiązuje zawsze; granice czasu i pamięci mierzymy bez detektora wyścigów, który spowalnia kod
+		// kilkanaście razy i sam zajmuje pamięć.
+		if !raceEnabled && (d > hostileTime || alloc > hostileBytes) {
 			t.Errorf("%s, %s: %v and %d MB, want under %v and %d MB", name, what, d, alloc>>20, hostileTime, hostileBytes>>20)
 		}
 		if testing.Verbose() {
@@ -434,8 +436,8 @@ func TestSafeByDefault(t *testing.T) {
 // ogranicza koszt wyszukania prefiksu.
 // REQ: SAFE-004
 func TestPathological(t *testing.T) {
-	if testing.Short() {
-		t.Skip("timing test")
+	if testing.Short() || raceEnabled {
+		t.Skip("timing test: not run with -short or with the race detector")
 	}
 	off := xmlreader.Limits{MaxDepth: -1, MaxAttributes: -1, MaxNameLength: -1, MaxTextSize: -1, MaxEntityExpansion: -1}
 	woff := xmlwriter.Limits{MaxDepth: -1, MaxAttributes: -1, MaxNameLength: -1, MaxTextSize: -1}
