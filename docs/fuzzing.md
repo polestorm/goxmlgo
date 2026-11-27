@@ -76,7 +76,8 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 | 2026-11-27 12:56 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzTree` (./xmltree) | 10m3s | 19088258 | ok |
 | 2026-11-27 13:07 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzRoundTrip` (./xmlwriter) | 10m1s | 27983639 | ok |
 | 2026-11-27 13:17 | `1c39428` (zmiany) | lokalnie, darwin/arm64, 10 CPU | `FuzzWriter` (./xmlwriter) | 10m2s | 26511160 | ok |
-| 2026-11-27 | `3d2dbc3` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader`, `FuzzTree`, `FuzzRoundTrip`, `FuzzWriter` | zlecone 13:37, 4 × 356 min, 3 workery | — | w kolejce za kampanią `gozipgo`; wynik dopisze `tools/fuzz -import` |
+| 2026-11-27 | `3d2dbc3` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader`, `FuzzTree`, `FuzzRoundTrip`, `FuzzWriter` | zlecone 13:37, nie rozpoczęte | — | wycofane z kolejki 13:53 przed startem: usunięcie pliku `doc.go` pakietu głównego (sama dokumentacja) sprawiłoby, że czas nie liczyłby się dla późniejszych commitów; zastąpione kampanią `5913b81` |
+| 2026-11-27 | `5913b81` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader`, `FuzzTree`, `FuzzRoundTrip`, `FuzzWriter` | zlecone 13:53, 4 × 356 min, 3 workery | — | w kolejce za kampanią `gozipgo`; wynik dopisze `tools/fuzz -import` |
 
 ## Znalezione błędy
 
