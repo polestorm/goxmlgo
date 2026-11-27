@@ -9,11 +9,11 @@ test `TestRequirementsCovered` sprawdza pokrycie w obie strony.
 | `CH` | `chars.md` | klasy znaków XML 1.0 | 1, 2 | 001, 003, 004 przyjęte (etap 1); 002, 005 szkic |
 | `WR` | `writer.md` | pisarz: wywołania, tokeny, escapowanie, przestrzenie nazw, dobra forma wyjścia, kody | 3 | 001…018 przyjęte (etap 3); 019, 020 przyjęte (etap 4) |
 | `TR` | `tree.md` | drzewo: budowa, poddrzewo ze strumienia, zmiany, zapis, źródło tokenów, limit | 4 | 001…015 przyjęte (etap 4) |
-| `STR` | `stream.md` | łańcuchy: przelot, filtr, wyspa; zapis powrotny | 3, 5 | 001, 002, 003, 006, 007 przyjęte (etap 3); 004, 005 szkic |
+| `STR` | `stream.md` | łańcuchy: przelot, filtr, wyspa; zapis powrotny | 3, 5 | 001, 002, 003, 006, 007 przyjęte (etap 3); 004, 005 przyjęte (etap 5) |
 | `SAFE` | `safety.md` | brak sieci i plików, encje zewnętrzne, limity, wrogie wejścia, czas liniowy | 5 | 001…006 przyjęte (2026-11-27); 007 szkic |
-| `DET` | `determinism.md` | powtarzalność, niezależność od systemu, pamięć i alokacje | 3, 5 | 002, 004, 007 przyjęte (etap 3); reszta szkic |
+| `DET` | `determinism.md` | powtarzalność, niezależność od systemu, pamięć i alokacje | 3, 5 | 002, 004, 007 przyjęte (etap 3); 001, 003, 005, 006, 008 przyjęte (etap 5) |
 | `API` | `api.md` | zgodność i stabilność API, wzorce, kody błędów | 0, 1 | 001, 002, 003, 004, 007 przyjęte (etapy 0–2); 005, 006 szkic |
-| `EVD` | `evidence.md` | pakiet dowodów (K9) | 5 | szkic |
+| `EVD` | `evidence.md` | pakiet dowodów (K9) | 5 | 001…005 przyjęte (etap 5) |
 
 ## Szkic a wymaganie przyjęte
 

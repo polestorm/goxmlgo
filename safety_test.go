@@ -21,10 +21,12 @@ import (
 
 // TestNoIOImports: pakiety biblioteki nie mają jak sięgnąć do plików, sieci, procesów ani pamięci poza kontrolą
 // języka: jedyne wejście i wyjście to io.Reader i io.Writer wywołującego.
-// REQ: SAFE-001
+// REQ: SAFE-001 DET-003
 func TestNoIOImports(t *testing.T) {
 	forbidden := map[string]bool{"os": true, "net": true, "net/http": true, "os/exec": true, "syscall": true,
-		"unsafe": true, "plugin": true, "io/ioutil": true, "os/signal": true, "runtime/cgo": true, "C": true}
+		"unsafe": true, "plugin": true, "io/ioutil": true, "os/signal": true, "runtime/cgo": true, "C": true,
+		// wynik nie może zależeć od czasu, losowości ani środowiska (DET-003)
+		"time": true, "math/rand": true, "math/rand/v2": true, "crypto/rand": true, "os/user": true}
 	checked := 0
 	for _, pkg := range append([]string{"."}, publicPackages...) {
 		files, err := filepath.Glob(filepath.Join(pkg, "*.go"))

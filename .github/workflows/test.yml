@@ -49,10 +49,16 @@ jobs:
       - name: tools
         shell: bash
         run: |
-          for tool in fetch fuzz bench; do
+          for tool in fetch fuzz bench evidence; do
             go -C tools/$tool vet ./...
             go -C tools/$tool test ./...
           done
+      - name: comparison tool (its candidates need a newer Go than the oldest in the matrix)
+        if: matrix.go == 'stable'
+        shell: bash
+        run: |
+          go -C tools/compare vet ./...
+          go -C tools/compare test ./...
       - name: race detector
         if: matrix.os == 'ubuntu-latest' && matrix.go == 'stable'
         run: go test -race ./...

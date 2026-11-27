@@ -44,7 +44,7 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 
 - liczy się czas przebiegów zakończonych wynikiem „ok” na commicie kandydata albo na późniejszych commitach, które
   nie zmieniają kodu biblioteki poza testami (`git diff --stat <kandydat> -- ':!*_test.go' ':!testdata' ':!docs'
-  ':!tools'` nic nie wypisuje);
+  ':!tools' ':!requirements' ':!*.md' ':!.github'` nic nie wypisuje);
 - wiersz z dopiskiem „(zmiany)” to przebieg na kodzie z niezatwierdzonymi zmianami: nie liczy się;
 - przebieg zakończony błędem zeruje licznik dla kodu, którego dotyczy;
 - czas na wolniejszym sprzęcie liczymy jako czas zegarowy, z podaniem hosta.

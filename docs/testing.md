@@ -9,7 +9,7 @@ da się odtworzyć. Dane cudze są pobierane według manifestu z sumami, dane w�
 |---|---|---|
 | zgodność czytnika | `TestXMLConformance`, `testdata/w3c/xmlconf` (pobierany), zapadka `testdata/w3c/xmlconf.ratchet` | werdykt dobrej formy i druga postać kanoniczna dla przypadków W3C w zakresie; liczba nie spada (K1) |
 | wymagania | `requirements/*.md`, `TestRequirementsCovered` | każde przyjęte wymaganie ma test; każde `REQ:` wskazuje istniejące wymaganie (K4) |
-| wzorzec API | `api/<pakiet>.txt`, `TestAPISnapshot`, `TestReaderAPIMatchesGoxsdgo`, `TestErrorCatalog` | publiczne API każdego pakietu równe wzorcowi; zmiana tylko przez `go test . -run TestAPISnapshot -update` i wpis w ADR (K4); API czytnika równe `goxsdgo` v0.3.0; kody błędów równe katalogowi `errors.md` |
+| wzorzec API | `api/<pakiet>.txt`, `TestAPISnapshot`, `TestReaderAPIKeepsGoxsdgo`, `TestErrorCatalog` | publiczne API każdego pakietu równe wzorcowi; zmiana tylko przez `go test . -run TestAPISnapshot -update` i wpis w ADR (K4); API czytnika równe `goxsdgo` v0.3.0; kody błędów równe katalogowi `errors.md` |
 | korpus | `testdata/corpus/*.xml` + `*.tokens` (od etapu 1) + `*.out.xml` (od etapu 3), `TestCorpus` | wzorcowy zrzut tokenów i wzorcowy zapis co do bajta; zmiana wzorca przez `go test ./xmlreader -run TestCorpus -update` i przegląd różnicy |
 | zapis powrotny | `TestRoundTrip` | odczyt → zapis → odczyt: równość strumieni tokenów; zapis idempotentny co do bajta; na zestawie W3C i korpusie (K2) |
 | własności pisarza | testy wymagań WR w `xmlwriter` (`TestTextEscaping`, `TestExplicitNamespaces`, `TestAutoNamespaces`, `TestErrorState`, `TestLimitsMatchReader`, …), `FuzzWriter` | dowolny ciąg wywołań: albo błąd ze stałym kodem i stan bez zmian, albo wyjście, które czytnik przyjmuje i z którego odtwarza te same wartości |
@@ -37,11 +37,25 @@ da się odtworzyć. Dane cudze są pobierane według manifestu z sumami, dane w�
 - testy nie sięgają do sieci; dane pobiera wyłącznie `tools/fetch`, a test bez danych jest pomijany z komunikatem,
   którego pakiet dowodów nie liczy jako zaliczenia.
 
+## Pakiet dowodów (K9)
+
+```sh
+go -C tools/evidence run . -root ../..                    # pakiet w out/evidence/<data>-<commit>/
+go -C tools/evidence run . -root ../.. -stream-mb 1024    # dodatkowo pomiar 1 GB (K7) w osobnym procesie
+```
+
+Pakiet zawiera `report.md` (tabela K1–K9 ze źródłem każdej liczby, macierz wymaganie → testy → wynik),
+`evidence.json` (to samo w postaci maszynowej) i surowe wyjścia: `go test -json` modułu głównego i każdego modułu
+narzędzi, testy Pythona, `tools/fetch -verify`. Stan „oczekuje” oznacza, że liczby nie da się dziś uzyskać albo
+pomiar trzeba powtórzyć na commicie kandydata; nigdy nie jest liczony jako spełnienie. Narzędzie kończy się
+statusem 1, gdy K4 albo K9 nie są spełnione. Zasady: `adr/0008-hardening.md`, pkt 6.
+
 ## Pomiary
 
 | Data | Commit | K1: W3C (zaliczone / w zakresie) | K2: zapis powrotny | K3: drzewo | Uwagi |
 |---|---|---|---|---|---|
 | 2026-11-26 | etapy 0–1, drzewo robocze przed pierwszym commitem (źródło: `goxsdgo` `698affa`) | 1 725 / 1 727 (eduni 476/477, ibm 526/527, oasis 323/323, sun 101/101, xmltest 299/299) | — (etap 3) | — (etap 4) | `go test ./xmlreader -run TestXMLConformance -v`, Go 1.26.6, macOS arm64; ta sama liczba i lista co w `goxsdgo`; korpus: 13 dokumentów, `TestCorpus` zgodny ze wzorcami; wymagania: 25 przyjętych, wszystkie z testem |
+| 2026-11-27 | etap 5 (w toku), drzewo robocze na `d45fa04`; kod biblioteki jak w v0.4.0 | 1 725 / 1 727 (bez zmian) | bez zmian | bez zmian | K7: 1 GB przelotu w 18 MB pamięci procesu, szczyt sterty 1,2 MB (`results/streaming-memory.txt`); wyspa na wiersz: szczyt 1,2 MB niezależnie od rozmiaru; `TestDeterministic` (10 przebiegów, 5 podziałów wejścia), `TestParallelUse`; drzewo wobec `etree` i `xmlquery`: budowa 1,3–3,4× szybsza, pamięć 1,6–1,75× większa, źle uformowane odrzucone 951 / 410 / 432 z 951 (`results/tree-vs-others.txt`, `results/tree-conformance.tsv`; maszyna obciążona, pomiar do powtórzenia na commicie); fuzzing 40 min na czystym v0.4.0 bez błędu |
 | 2026-11-27 | etap 4, `9b1b779` | 1 725 / 1 727 (bez zmian) | korpus 13 / 13, W3C 775 / 775 (bez zmian) | korpus 13 / 13, W3C 775 / 775 dokumentów przyjmowanych przez czytnik: `Parse` → `WriteTo` równe przelotowi co do bajta, `NewReader` równe strumieniowi źródła; zapadka `testdata/w3c/tree.ratchet`; 1 156 elementów jako poddrzewo w środku przelotu bez zmiany wyniku | `go test ./xmltree -run 'TestTreeRoundTrip|TestSubtreeInStream|TestTreeLinear' -v`; węzeł tylko przez metody (ADR 0006); pamięć drzewa: węzeł 72 B, element dodatkowo 136 B; 142 B na węzeł (styl JPK) i 250 B (styl WordML), 5,9× i 10,5× rozmiaru dokumentu; budowa 0,01 i 0,47 alokacji na węzeł, zapis 1 alokacja na dokument; budowa ok. 191 MB/s i zapis ok. 573 MB/s na `GenJPK(20000)` (benchmarki pakietu, maszyna obciążona: orientacyjnie); wymagania: 80 przyjętych, wszystkie z testem; `FuzzTree`: przebiegi sprawdzające lokalnie (do 90 s, 1,9 mln wykonań), dwa błędy znalezione i poprawione przed pomiarem (nie liczy się do K5); K6: `go test . -run 'TestHostileInputs|TestPathological|TestSafeByDefault|TestNoIOImports' -v`: 26 rodzin wrogich wejść i wywołań odrzuconych właściwym kodem, najdłuższe 0,18 s, szczyt pamięci do 48 MB; 15 rodzin patologicznych, czas przy podwojeniu rozmiaru 1,6–2,4×; nowy limit `MaxNamespaces` 256 (ADR 0007) |
 | 2026-11-27 | etap 3, `247615e` | 1 725 / 1 727 (bez zmian) | korpus 13 / 13, W3C 775 / 775 dokumentów przyjmowanych przez czytnik; zapis idempotentny co do bajta; zapadka `testdata/w3c/roundtrip.ratchet` | — (etap 4) | `go test ./xmlwriter -run TestRoundTrip -v`; `encoding/xml` czyta wyjście pisarza tak samo w 767 z 789 dokumentów (13 odrzuca, 9 poza trybem przestrzeni nazw); przelot czytnik → pisarz 164 MB/s (JPK) i 83 MB/s (WordML), 1,83× i 1,20× przelotu `encoding/xml`, K7 czytnika 1,23× i 1,20× (`results/reader-vs-goxsdgo.txt`); czytnik bez pustych tokenów tekstu (`differences.md`); wymagania: 63 przyjęte, wszystkie z testem; `FuzzWriter` i `FuzzRoundTrip`: przebiegi sprawdzające po 40 s lokalnie (1,74 mln i 1,30 mln wykonań), jeden błąd znaleziony i poprawiony przed pomiarem (nie liczy się do K5) |
 | 2026-11-26 | etap 2, `96c7949` | 1 725 / 1 727 (bez zmian; strumień 1 727 przypadków identyczny z v0.1.0, `TestTokenStreamStable`) | — (etap 3) | — (etap 4) | K7: 1,22× (JPK) i 1,19× (WordML) szybkości `goxsdgo` v0.3.0, `results/reader-vs-goxsdgo.txt`; test różnicowy z `goxsdgo` v0.3.0 na 3 381 plikach: 1 świadoma różnica (`differences.md`); wymagania: 37 przyjętych, wszystkie z testem; `FuzzReader` z nowymi niezmiennikami: przebieg sprawdzający 90 s lokalnie, 2,09 mln wykonań, bez błędu (nie liczy się do K5) |

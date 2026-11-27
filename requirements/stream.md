@@ -16,7 +16,7 @@ Status: przyjęte
 
 ## Etap 5
 
-Status: szkic
+Status: przyjęte
 
 | Id | Wymaganie |
 |---|---|

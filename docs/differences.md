@@ -29,15 +29,6 @@ Porażki w zakresie (2), obie świadome; lista jest w zapadce `testdata/w3c/xmlc
 | `ibm/ibm-valid-P29-ibm29v01.xml` | dokument jest przyjęty, ale druga postać kanoniczna nie ma instrukcji przetwarzania `<?sound …?>`, którą zestaw w niej podaje | instrukcja stoi wewnątrz DOCTYPE; czytnik nie podaje instrukcji z podzbioru wewnętrznego jako tokenów (nie należą do treści dokumentu; ADR 0003, pkt 5) |
 | `eduni/rmt-e3e-13` | dokument typu „invalid” (dobrze uformowany) jest odrzucany kodem `unsupported-entity-unresolved` | odwołanie do encji niezadeklarowanej w podzbiorze wewnętrznym, gdy WFC Entity Declared nie obowiązuje; czytnik woli błąd niż ciche pominięcie treści (ADR 0003, pkt 6) |
 
-## Zapis powrotny: wyjątki (K2)
-
-Dokumenty, dla których odczyt → zapis → odczyt nie daje równego strumienia tokenów, z powodem (np. dokument, którego
-treść zależy od deklaracji w DOCTYPE, którego pisarz nie zapisuje).
-
-| Dokument | Powód |
-|---|---|
-| — | — |
-
 ## Względem `encoding/xml`
 
 Zachowania, w których czytnik albo pisarz świadomie różni się od biblioteki standardowej, z odwołaniem do reguły

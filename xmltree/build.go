@@ -15,7 +15,9 @@ type Options struct {
 	Reader xmlreader.Options
 	// MaxNodes limits the number of nodes (elements, text nodes, comments, processing instructions) built by
 	// one call; zero means DefaultMaxNodes, a negative value no limit. A source with more nodes gives
-	// CodeLimitNodes and no tree.
+	// CodeLimitNodes and no tree. The limit bounds the memory of a tree only through the number of nodes: an
+	// element takes about 200 bytes and an attribute about 110, whatever the size of the input, so a tree at the
+	// default limit can take several hundred megabytes. Set a lower limit for input that is not trusted.
 	MaxNodes int
 	// IDs makes Parse and ReadDocument build the index of identifiers (Document.ByID) from the attributes of
 	// type ID declared in the DTD and from xml:id.

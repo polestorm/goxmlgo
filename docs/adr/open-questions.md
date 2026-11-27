@@ -37,11 +37,18 @@ Kolejność według etapu, w którym pytanie blokuje pracę.
     jest prywatny, więc można go zmieniać także po 1.0 ([ADR 0006](0006-tree.md), pkt 15).
 15. ~~Deklaracja `xmlns:xml` w zapisie powrotnym.~~ Rozstrzygnięte 2026-11-27: czytnik oddaje ją jak każdą inną
     deklarację, bez wyjątku ([ADR 0006](0006-tree.md), pkt 16).
-16. **Porównanie drzewa z innymi bibliotekami.** Kandydaci w Go uruchamiani jako czarna skrzynka w `tools/bench`
-    (np. `beevik/etree`, `antchfx/xmlquery`), z liczbą przypadków W3C, które każdy przyjmuje błędnie; ewentualnie
-    `pugixml` i `libxml2` z zastrzeżeniem o innym języku i mniejszym zakresie kontroli. Pomiar z OXml (Delphi,
-    biblioteka komercyjna) nie jest powtarzalny z zewnątrz, więc najwyżej wewnętrzny. Do decyzji przed etapem 5.
+16. ~~Porównanie drzewa z innymi bibliotekami.~~ Zrobione 2026-11-27 dla `beevik/etree` i `antchfx/xmlquery`
+    (`tools/compare`, metoda w `../methodology.md`). Kandydaci spoza Go (`pugixml`, `libxml2`) i OXml: nadal do
+    decyzji właściciela, czy w ogóle.
 17. ~~Limit deklaracji przestrzeni nazw w zakresie.~~ Potwierdzony przez właściciela 2026-11-27, z wartością
     domyślną 256 zamiast 1024 ([ADR 0007](0007-hostile-inputs.md)).
 18. **Pamięć drzewa przy limicie domyślnym** (2 mln węzłów to do ok. 420 MB dla 8 MB wejścia) i koszt prefiksów
     automatycznych pisarza: [ADR 0007](0007-hostile-inputs.md), „Co zostaje do etapu 5”.
+19. **Pamięć drzewa wobec innych bibliotek.** Porównanie z 2026-11-27: drzewo `goxmlgo` buduje się 1,3–3,4 razy
+    szybciej niż `etree` i `xmlquery`, ale zajmuje 6,8× i 11,5× rozmiaru dokumentu, a `etree` 4,3× i 6,5×. Układ
+    węzła jest prywatny (ADR 0006), więc da się go zmniejszyć bez zmiany API, z jednym wyjątkiem. Możliwe kroki,
+    od najtańszego: (a) nazwa elementu jako wskaźnik na nazwę przechowywaną raz (element 208 → ok. 170 B);
+    (b) deklaracje i kontekst przestrzeni nazw w strukturze przydzielanej tylko elementom, które je mają
+    (→ ok. 130 B); (c) atrybuty w postaci zwartej (ok. 40 B zamiast 112): wymaga, żeby `Attrs()` oddawało kopię
+    albo żeby doszło `NumAttrs`/`AttrAt`, czyli zmiany API z v0.4.0. Rekomendacja: (a) i (b) w ramach etapu 5,
+    z pomiarem przed i po; (c) osobną decyzją, bo zmienia API i koszt dostępu do atrybutów.

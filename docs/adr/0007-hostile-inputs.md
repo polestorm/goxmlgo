@@ -1,6 +1,6 @@
-# ADR 0007: wrogie dane i limit deklaracji przestrzeni nazw w zakresie
+# 0007 Wrogie dane i limit deklaracji przestrzeni nazw w zakresie
 
-Data: 2026-11-27. Status: przyjęty (limit z pkt 1 potwierdził właściciel, z wartością domyślną 256).
+Status: przyjęta · 2026-11-27 (limit z pkt 1 potwierdził właściciel, z wartością domyślną 256)
 
 ## Kontekst
 

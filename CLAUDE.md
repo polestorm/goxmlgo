@@ -53,7 +53,8 @@ kolumnę „Stan” w `docs/roadmap.md`.
   tego samego dnia (`docs/adr/0004-reader-extensions.md`), etap 3 (pisarz `xmlwriter`) 2026-11-27
   (`docs/adr/0005-writer.md`); dowody w `docs/testing.md`; etap 4 (drzewo `xmltree`) tego samego dnia
   (`docs/adr/0006-tree.md`); v0.3.0 wydane; v0.4.0 wydane; testy wrogich danych i limit `MaxNamespaces`
-  w `docs/adr/0007-hostile-inputs.md`; **następny krok: etap 5** (strumień i utwardzanie; pytania 16 i 18);
+  w `docs/adr/0007-hostile-inputs.md`; **etap 5 w toku** (`docs/adr/0008-hardening.md`): zostają kampania fuzzingu 24 h na
+  Synology (K5) i pytania 18 i 19 (pamięć drzewa); potem etap 6 (konsumenci);
 - pytania 1–3 są rozstrzygnięte (ADR 0002: repozytorium publiczne od v0.1.0, deklaracje przestrzeni nazw
   w tokenie, zapis powrotny zachowuje treść, nie bajty), więc etapy 0–2 nie mają blokad decyzyjnych; pozostałe
   pytania (`docs/adr/open-questions.md`) rozstrzygamy w etapach, z rekomendacją;

@@ -1,14 +1,14 @@
 # Wymagania: pakiet dowodów
 
-Status: szkic
+Status: przyjęte
 
-Kryterium K9 (ADR 0001). Narzędzie `tools/evidence` przenosimy z `goxsdgo` i dostosowujemy; wymagania EVD-001…005
-tamże są wzorem.
+Kryterium K9 (ADR 0001). Narzędzie `tools/evidence` przeniesione z `goxsdgo` i dostosowane (2026-11-27); wymagania
+EVD-001…005 tamże były wzorem. Testy są w `tools/evidence/evidence_test.go`.
 
 | Id | Wymaganie |
 |---|---|
-| EVD-001 | Pakiet zawiera surowy wynik `go test -count=1 -json ./...` modułu głównego i modułów narzędzi oraz wynik `tools/fetch -verify`, z commitem (i oznaczeniem zmian w drzewie roboczym), wersją Go, systemem i datą. |
-| EVD-002 | Pakiet zawiera macierz śledzenia: każde przyjęte wymaganie z `requirements/*.md` z testami, które się na nie powołują przez `REQ:`, i z wynikiem tych testów w przebiegu. Wymaganie bez testu albo z testem pominiętym jest wykazane jako niespełnione. |
-| EVD-003 | Pakiet zawiera tabelę K1–K9: wartość, cel, stan i źródło. Wartości z przebiegów testów liczy z ich wyjścia; pomiary spoza `go test` (K5, K7, K8 u konsumentów) bierze z plików w `docs/` z datą i commitem pomiaru. |
-| EVD-004 | Dla tego samego commitu i tych samych danych raport i jego postać maszynowa różnią się tylko datą wygenerowania; czasy przebiegów są wyłącznie w plikach surowych. |
-| EVD-005 | Narzędzie nie sięga do sieci, nie uruchamia fuzzingu i nie czyta danych spoza repozytorium. Kończy się kodem 1, gdy K4 albo K9 nie są spełnione; pakiet zapisuje także wtedy. |
+| EVD-001 | Pakiet zawiera surowy wynik `go test -count=1 -json ./...` modułu głównego i każdego modułu narzędzia (`tools/*/go.mod`), wynik testów `tools/fetch` w Pythonie oraz wynik `tools/fetch -verify`, z commitem (i oznaczeniem zmian w drzewie roboczym, także plików nieśledzonych), wersją Go, systemem i datą. Obok: nagłówki zapadek, sumy danych testowych z manifestu, lista decyzji i sekcje `docs/differences.md`. |
+| EVD-002 | Pakiet zawiera macierz śledzenia: każde wymaganie z `requirements/*.md` ze statusem (przyjęte albo szkic, według wierszy `Status:`), z testami i plikami korpusu, które się na nie powołują przez `REQ:` (te same reguły co `TestRequirementsCovered`; odwołanie w komentarzu należy do funkcji testowej, w której albo nad którą stoi), i z wynikiem tych testów w przebiegu. Przyjęte wymaganie bez testu, z testem nieudanym, odwołanie do nieistniejącego wymagania albo błąd w pliku wymagań dają K4 „niespełnione”; test pominięty albo nieobecny w przebiegu daje K4 „oczekuje”. Wymaganie w szkicu jest wypisane, ale testu nie wymaga. |
+| EVD-003 | Pakiet zawiera tabelę K1–K9: wartość, cel, stan (spełnione, niespełnione, oczekuje) i źródło. Wartości z przebiegów testów liczy z ich wyjścia; K5 z tabeli „Przebiegi” w `docs/fuzzing.md` (tylko przebiegi „ok” z czystego drzewa na kodzie biblioteki kandydata; przebieg z błędem zeruje licznik), K7 z wierszy stosunków w `docs/results/reader-vs-goxsdgo.txt` i z pomiaru pliku 1 GB w `docs/results/streaming-memory.txt` albo z osobnego przebiegu samego `TestStreamingMemory` (flaga `-stream-mb`); pomiar z drzewa ze zmianami albo na innym kodzie biblioteki niż kandydat nie spełnia kryterium. Sprawdzenia spoza repozytorium (zastąpienie drzew konsumentów, macierz CI i konsumenci) bierze z opcjonalnego `docs/measurements.json` z datą i commitem. Liczba, której nie da się uzyskać, daje stan „oczekuje” albo „niespełnione”, nigdy „spełnione”. |
+| EVD-004 | Dla tego samego commitu i tych samych danych raport (`report.md`) i jego postać maszynowa (`evidence.json`) różnią się tylko datą wygenerowania; czasy przebiegów są wyłącznie w plikach surowych. Wyjątek: przy fladze `-stream-mb` pamięć procesu zmierzona w osobnym przebiegu jest w wierszu K7. |
+| EVD-005 | Narzędzie nie sięga do sieci (przebiegi mają `GOPROXY=off` i `GOTOOLCHAIN=local`, dane sprawdza tylko `tools/fetch -verify`), nie uruchamia fuzzingu i nie czyta danych spoza repozytorium (zmienne `GOXMLGO_*` są usuwane ze środowiska przebiegów; rozmiar dla `TestStreamingMemory` ustawia tylko flaga `-stream-mb`). Kończy się kodem 1, gdy K4 albo K9 nie są spełnione; pakiet zapisuje także wtedy. |

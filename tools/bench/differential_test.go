@@ -160,3 +160,39 @@ func TestSameAsGoxsdgo(t *testing.T) {
 	t.Logf("%d files, each read with and without namespaces; in %d of them goxsdgo v0.3.0 gives empty text tokens, which goxmlgo no longer does; in %d goxmlgo gives the declaration xmlns:xml, which goxsdgo v0.3.0 leaves out",
 		files, withEmpty, withXML)
 }
+
+// TestRecordedResult: zapisany wynik pomiaru (docs/results/reader-vs-goxsdgo.txt) spełnia progi K7 narzędzia:
+// czytnik nie wolniejszy niż 0,95× czytnika goxsdgo v0.3.0, przelot co najmniej 0,55× samego czytnika i nie
+// wolniejszy niż przelot encoding/xml, na każdym dokumencie wzorcowym. Sam pomiar wykonuje narzędzie (kończy się
+// statusem 1 poniżej progu); test pilnuje, żeby do repozytorium nie trafił wynik spoza progów ani bez commitu.
+// REQ: DET-008
+func TestRecordedResult(t *testing.T) {
+	data, err := os.ReadFile("../../docs/results/reader-vs-goxsdgo.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(data)
+	if strings.Contains(text, "uncommitted") {
+		t.Error("the recorded result comes from a tree with uncommitted changes")
+	}
+	ratios, passes := 0, 0
+	for _, line := range strings.Split(text, "\n") {
+		var doc string
+		var a, b, c float64
+		if n, _ := fmt.Sscanf(line, "# ratio %s %f", &doc, &a); n == 2 {
+			ratios++
+			if a < threshold {
+				t.Errorf("recorded reader ratio %.3f below %.2f: %s", a, threshold, line)
+			}
+		}
+		if n, _ := fmt.Sscanf(line, "# pass-through %s goxmlgo %f MB/s, %f of its reader alone, %f of encoding/xml", &doc, &a, &b, &c); n == 4 {
+			passes++
+			if b < passThroughOfReader || c < passThroughOfStdlib {
+				t.Errorf("recorded pass-through below the thresholds: %s", line)
+			}
+		}
+	}
+	if ratios != len(documents) || passes != len(documents) {
+		t.Errorf("the recorded result has %d reader ratios and %d pass-through lines for %d documents", ratios, passes, len(documents))
+	}
+}
