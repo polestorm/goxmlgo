@@ -1,4 +1,5 @@
-// Command bench mierzy czytnik goxmlgo wobec czytnika goxsdgo v0.3.0 (kryterium K7: nie wolniejszy niż 0,95×)
+// Command bench mierzy czytnik goxmlgo wobec czytnika goxsdgo v0.3.0 (kryterium K7: nie wolniejszy niż 0,95×;
+// przelot nie wolniejszy niż 0,55× samego czytnika i nie wolniejszy niż przelot encoding/xml)
 // na tych samych dokumentach, w tym samym przebiegu, na przemian, a od etapu 3 także przelot czytnik → pisarz
 // goxmlgo i, dla porównania, przelot Decoder → Encoder z encoding/xml. Metoda: docs/methodology.md.
 //
@@ -32,6 +33,13 @@ import (
 
 // threshold to granica K7: szybkość nowego czytnika podzielona przez szybkość czytnika goxsdgo v0.3.0.
 const threshold = 0.95
+
+// Granice K7 dla przelotu (ADR 0005, pkt 13): szybkość przelotu czytnik → pisarz podzielona przez szybkość samego
+// czytnika i przez szybkość przelotu encoding/xml.
+const (
+	passThroughOfReader = 0.55
+	passThroughOfStdlib = 1.0
+)
 
 type candidate struct {
 	name string
@@ -124,7 +132,7 @@ func main() {
 	fmt.Fprintf(&b, "# %s %s/%s, %d CPU, one goroutine\n", runtime.Version(), runtime.GOOS, runtime.GOARCH, runtime.NumCPU())
 	fmt.Fprintf(&b, "# %s\n", machine())
 	fmt.Fprintf(&b, "# per document: median of %d rounds, candidates alternate within a round; ratio = goxmlgo MB/s / goxsdgo MB/s; K7 needs >= %.2f\n", *rounds, threshold)
-	fmt.Fprintf(&b, "# pass-through candidates read the document and write it to io.Discard; encoding/xml uses RawToken and EncodeToken\n")
+	fmt.Fprintf(&b, "# pass-through candidates read the document and write it to io.Discard; encoding/xml uses RawToken and EncodeToken; K7 needs >= %.2f of the reader alone and >= %.2f of encoding/xml\n", passThroughOfReader, passThroughOfStdlib)
 	fmt.Fprintf(&b, "document\tbytes\ttokens\tcandidate\tmedian_ms\tMB/s\tmin_ms\tmax_ms\tallocs\tbytes_allocated\n")
 
 	failed := false
@@ -170,8 +178,12 @@ func main() {
 			verdict, failed = "BELOW THE THRESHOLD", true
 		}
 		ratios = append(ratios, fmt.Sprintf("# ratio %s: %.3f (%s)", doc.name, ratio, verdict))
-		ratios = append(ratios, fmt.Sprintf("# pass-through %s: goxmlgo %.1f MB/s, %.2f of its reader alone, %.2f of encoding/xml Decoder+Encoder",
-			doc.name, speed[2], speed[2]/speed[1], speed[2]/speed[3]))
+		verdict = "ok"
+		if speed[2]/speed[1] < passThroughOfReader || speed[2]/speed[3] < passThroughOfStdlib {
+			verdict, failed = "BELOW THE THRESHOLD", true
+		}
+		ratios = append(ratios, fmt.Sprintf("# pass-through %s: goxmlgo %.1f MB/s, %.2f of its reader alone, %.2f of encoding/xml Decoder+Encoder (%s)",
+			doc.name, speed[2], speed[2]/speed[1], speed[2]/speed[3], verdict))
 	}
 	b.WriteString(strings.Join(ratios, "\n") + "\n")
 	fmt.Print(b.String())

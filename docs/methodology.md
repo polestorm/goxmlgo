@@ -127,7 +127,10 @@ read the document and write it at once to `io.Discard`: `xmlreader` → `xmlwrit
 default options) and `encoding/xml` `Decoder` → `Encoder` (`RawToken`, `EncodeToken`, `Flush`, default settings).
 The two do not do the same work: xmlwriter checks every name, character and namespace binding and keeps prefixes,
 CDATA sections and empty-element tags; `Encoder` rewrites namespace prefixes and checks less
-([`differences.md`](differences.md)). Result of 2026-11-27 (commit of stage 3, `247615e`): 164 MB/s on the JPK-like document and 83 MB/s on the WordprocessingML-like one, that is 0.62 and 0.67 of
+([`differences.md`](differences.md)). **Threshold** (K7, since 2026-11-27): on every document the pass-through of
+goxmlgo is at least 0.55 of the speed of its reader alone and not slower than the encoding/xml pass-through; the
+tool exits with status 1 below that. The threshold is relative because a speed in MB/s depends on the machine and
+on the document. Result of 2026-11-27 (commit of stage 3, `247615e`): 164 MB/s on the JPK-like document and 83 MB/s on the WordprocessingML-like one, that is 0.62 and 0.67 of
 the speed of the reader alone and 1.83 and 1.20 times the speed of the encoding/xml pass-through.
 
 **Allocations.** `go test ./xmlwriter -run TestWriterAllocations -v`: a document written with calls allocates

@@ -364,6 +364,36 @@ func TestIndent(t *testing.T) {
 	}
 }
 
+// TestIndentDeterministic: wynik z wcięciami zależy tylko od ciągu wywołań i wartości Indent: te same bajty
+// w kolejnych przebiegach, z Flush po każdym wywołaniu, przy zapisie po 3 bajty i po Reset.
+// REQ: WR-016
+// REQ: DET-004
+func TestIndentDeterministic(t *testing.T) {
+	doc := func(w *Writer, flush func()) error {
+		return seq(w.Declaration(""), do(flush), w.Start(n("a")), do(flush), w.Attr(n("x"), "1"), do(flush),
+			w.Start(n("b")), do(flush), w.Start(n("c")), w.EndEmpty(), do(flush), w.End(), do(flush),
+			w.Start(n("t")), w.Text("x"), do(flush), w.Start(n("i")), w.EndEmpty(), w.End(), do(flush),
+			w.Comment("k"), do(flush), w.ProcInst("p", "d"), w.End(), do(flush), w.Comment("end"))
+	}
+	opts := Options{Indent: "  "}
+	want, err := write(opts, func(w *Writer) error { return doc(w, func() {}) })
+	if err != nil {
+		t.Fatal(err)
+	}
+	cw := &chunkWriter{size: 3}
+	w := New(cw, opts)
+	for i := 0; i < 10; i++ {
+		cw.b.Reset()
+		w.Reset(cw, opts)
+		if err := seq(doc(w, func() { w.Flush() }), w.Close()); err != nil {
+			t.Fatal(err)
+		}
+		if got := cw.b.String(); got != want {
+			t.Fatalf("run %d:\n got  %q\n want %q", i, got, want)
+		}
+	}
+}
+
 // TestLimitsMatchReader: limity pisarza mają te same wartości domyślne i kody co limity czytnika. Dokument
 // zapisany na granicy limitu czytnik z tymi samymi limitami czyta; o jeden więcej pisarz odrzuca, tak jak czytnik.
 // REQ: WR-017

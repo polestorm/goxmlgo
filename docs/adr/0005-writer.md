@@ -50,7 +50,11 @@ i przyjęte (`../../requirements/writer.md`), razem z STR-001, 002, 003, 006, 00
     elementu, więc reguła „tylko w elementach bez tekstu” ze szkicu jest niewykonalna dosłownie. Przyjęta reguła:
     wcięcie przed znacznikiem, komentarzem i PI, nigdy w elemencie, w którym wcześniej zapisano tekst albo CDATA,
     ani w jego potomkach. Tekst nie zmienia się nigdy; w elemencie, który dostaje tekst po elementach podrzędnych,
-    białe znaki zapisane przed nimi zostają. Dokument już wcięty przechodzi bez zmian (WR-016).
+    białe znaki zapisane przed nimi zostają. Dokument już wcięty przechodzi bez zmian (WR-016). Wynik z wcięciami
+    zależy wyłącznie od ciągu wywołań i wartości `Indent`, więc jest powtarzalny co do bajta, dopóki algorytm się
+    nie zmienia. Algorytm jest przez to częścią kontraktu: każda jego zmiana (także ściślejsza reguła dla drzewa
+    w etapie 4) zmienia bajty u konsumentów, wymaga wpisu w ADR i w CHANGELOG oraz zmiany wzorca w `TestIndent`.
+    Potwierdzone przez właściciela 2026-11-27.
 11. **Limity** pisarza obejmują także liczbę atrybutów i rozmiar tekstu (szkic wymieniał tylko głębokość i długość
     nazwy): inaczej pisarz z ustawieniami domyślnymi mógłby zapisać dokument, którego czytnik z ustawieniami
     domyślnymi nie przeczyta (WR-017).
@@ -62,6 +66,15 @@ i przyjęte (`../../requirements/writer.md`), razem z STR-001, 002, 003, 006, 00
     v0.2.0, zapisana w `../differences.md`; `TestSameAsGoxsdgo` sprawdza, że jest jedyną różnicą kształtu
     strumienia wobec `goxsdgo` v0.3.0 (22 z 3 394 plików), a testy `goxsdgo` v0.4.1 na czytniku po zmianie dają
     ten sam wynik co na v0.2.0 (1 127 zaliczonych, te same dwa testy księgowe).
+
+13. **Cel szybkości przelotu jest względny** (pytanie 13, decyzja właściciela z 2026-11-27). Cel roboczy z ADR
+    0001 „czytnik → pisarz ≥ 100 MB/s” zależał od maszyny i od dokumentu. Zastępuje go próg mierzony w jednym
+    przebiegu `tools/bench`: przelot ≥ 0,55× szybkości samego czytnika na każdym dokumencie wzorcowym i nie
+    wolniejszy niż przelot `Decoder` → `Encoder` z `encoding/xml`. Narzędzie kończy się statusem 1 poniżej progu.
+    Liczby bezwzględne podajemy w pomiarach.
+
+Decyzje 2 (typy wspólne zostają w `xmlreader`, bez osobnego pakietu na razie), 10 i 12 potwierdził właściciel
+2026-11-27.
 
 ## Pomiary (2026-11-27, commit `247615e`)
 
@@ -75,8 +88,8 @@ i przyjęte (`../../requirements/writer.md`), razem z STR-001, 002, 003, 006, 00
   w stylu JPK i 83 MB/s w stylu WordprocessingML, czyli 0,62 i 0,67 szybkości samego czytnika oraz 1,83× i 1,20×
   przelotu `Decoder` → `Encoder` z `encoding/xml`. Pisarz nie dodaje alokacji do alokacji czytnika; wywołania nie
   alokują po rozgrzaniu (`TestWriterAllocations`).
-- Cel roboczy K7 „przelot ≥ 100 MB/s na dokumencie wzorcowym” jest spełniony na jednym z dwóch dokumentów
-  wzorcowych. Na drugim sam czytnik daje 125 MB/s, więc cel bezwzględny jest tam blisko granicy tego, co możliwe.
+- Cel roboczy K7 „przelot ≥ 100 MB/s na dokumencie wzorcowym” był spełniony na jednym z dwóch dokumentów
+  wzorcowych; zastąpił go próg względny (pkt 13), spełniony na obu. Na drugim sam czytnik daje 125 MB/s, więc cel bezwzględny jest tam blisko granicy tego, co możliwe.
   Pytanie 13 w `open-questions.md` proponuje, jak go sformułować.
 
 ## Konsekwencje

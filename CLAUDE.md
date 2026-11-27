@@ -39,7 +39,7 @@ Zacznij od `README.md`, potem `docs/roadmap.md`, `docs/adr/0001-scope-and-accept
 | K4 | każde wymaganie z `requirements/` ma test; publiczne API zgodne z zapisanym wzorcem | `TestRequirementsCovered`, `TestAPISnapshot` |
 | K5 | fuzzing ≥ 24 h łącznie bez paniki i bez naruszenia niezmienników (to, co pisarz zapisał bez błędu, czytnik czyta bez błędu i z tymi samymi tokenami) | `FuzzReader`, `FuzzRoundTrip`, `FuzzWriter`, `FuzzTree` |
 | K6 | bezpieczeństwo: bez sieci i plików, encje zewnętrzne nigdy nie czytane, limity domyślnie włączone; wrogie wejścia odrzucone w < 1 s i < 64 MB; czas liniowy | `TestSafeByDefault`, `TestHostileInputs`, `TestPathological` |
-| K7 | wydajność i pamięć: czytnik nie wolniejszy niż 0,95× czytnika z `goxsdgo` v0.3.0 w tym samym przebiegu; plik 1 GB przez czytnik → pisarz w < 64 MB; stała liczba alokacji na dokument | `tools/bench`, `TestStreamingMemory` |
+| K7 | wydajność i pamięć: czytnik nie wolniejszy niż 0,95× czytnika z `goxsdgo` v0.3.0 w tym samym przebiegu; przelot czytnik → pisarz ≥ 0,55× samego czytnika i nie wolniej niż przelot `encoding/xml`; plik 1 GB przez czytnik → pisarz w < 64 MB; stała liczba alokacji na dokument | `tools/bench`, `TestStreamingMemory` |
 | K8 | powtarzalność i konsumenci: te same bajty w 10 przebiegach i na każdym systemie z CI; `goxsdgo` i `goxadesgo` po przełączeniu przechodzą swoje testy bez zmiany swoich liczb | `TestDeterministic`, u konsumentów (etap 6) |
 | K9 | pakiet dowodów: wymagania → testy → wynik ostatniego przebiegu, tabela K1–K9 ze źródłem każdej liczby | `tools/evidence` |
 
@@ -51,8 +51,8 @@ kolumnę „Stan” w `docs/roadmap.md`.
 - etapy w kolejności z `docs/roadmap.md`; etapy 0 (narzędzia i szkielet testów) i 1 (przeniesienie czytnika bez
   zmiany zachowania) wykonane 2026-11-26 (`docs/adr/0003-reader-transfer.md`), etap 2 (rozszerzenia czytnika)
   tego samego dnia (`docs/adr/0004-reader-extensions.md`), etap 3 (pisarz `xmlwriter`) 2026-11-27
-  (`docs/adr/0005-writer.md`); dowody w `docs/testing.md`; **następny krok: etap 4** (drzewo), po potwierdzeniu
-  przez właściciela pytań 6, 7 i 13;
+  (`docs/adr/0005-writer.md`); dowody w `docs/testing.md`; **następny krok: wydanie v0.3.0 i etap 4** (drzewo); pytania 6, 7
+  i 13 właściciel rozstrzygnął 2026-11-27;
 - pytania 1–3 są rozstrzygnięte (ADR 0002: repozytorium publiczne od v0.1.0, deklaracje przestrzeni nazw
   w tokenie, zapis powrotny zachowuje treść, nie bajty), więc etapy 0–2 nie mają blokad decyzyjnych; pozostałe
   pytania (`docs/adr/open-questions.md`) rozstrzygamy w etapach, z rekomendacją;
