@@ -115,3 +115,15 @@ Powód: pustego tekstu nie da się zapisać tak, żeby wrócił, więc zapis pow
 dotyczy 22 z 3 394 plików zestawu W3C i korpusu (`TestSameAsGoxsdgo` w `tools/bench` sprawdza plik po pliku, że
 poza tym strumień jest taki sam jak w `goxsdgo` v0.3.0) i nie zmienia drugiej postaci kanonicznej ani wyniku
 K1. Testy `goxsdgo` v0.4.1 uruchomione na czytniku po zmianie dają ten sam wynik co na v0.2.0.
+
+### Od v0.4.0
+
+| Zachowanie | do v0.3.0 (i `goxsdgo` v0.3.0–v0.4.1) | od v0.4.0 | Reguła |
+|---|---|---|---|
+| więcej niż 256 deklaracje przestrzeni nazw w zakresie naraz (łącznie we wszystkich otwartych elementach) | dokument przyjęty; koszt rozwiązania prefiksu rósł z liczbą deklaracji (do 2 mln przy pozostałych limitach domyślnych, czytanie ok. 150 razy wolniejsze) | błąd `limit-namespaces`; limit `Limits.MaxNamespaces` można podnieść albo wyłączyć wartością ujemną | limit, nie reguła XML (ADR 0007) |
+| deklaracja `xmlns:xml="http://www.w3.org/XML/1998/namespace"` | pomijana na liście deklaracji elementu (`Token.Namespaces`, `DeclaredNamespaces`), więc ginęła w zapisie powrotnym | oddawana jak każda inna deklaracja; zakres się nie zmienia (prefiks `xml` jest związany zawsze), `InScopeNamespaces` jej nie podaje | Namespaces in XML 1.0, rozdz. 3: prefiks `xml` wolno, ale nie trzeba deklarować; XML Infoset: [namespace attributes] (ADR 0006, pkt 16) |
+
+Deklaracja `xmlns:xml` występuje w 2 z 3 394 plików zestawu i korpusu (`tools/bench`, `TestSameAsGoxsdgo`); suma
+w `TestTokenStreamStable` jest zmieniona z tego powodu.
+Żaden dokument zestawu W3C ani korpusu nie przekracza limitu deklaracji, więc strumień tokenów i błędów dla nich się nie
+zmienia (`TestTokenStreamStable`).

@@ -5,7 +5,7 @@ versions; the contract is the code and the position, so a caller can translate o
 once released, keeps its meaning and is not removed. `TestErrorCatalog` checks that this file lists exactly the
 codes the source defines.
 
-The catalogue grows with the packages: `xmlreader` (v0.1.0), `xmlwriter` (v0.3.0), `xmltree` (stage 4).
+The catalogue grows with the packages: `xmlreader` (v0.1.0), `xmlwriter` (v0.3.0), `xmltree` (v0.4.0).
 
 A code names a rule, not a package. Where the writer refuses what the reader would reject, it reports the code of
 the reader, so each code is listed once, under the package that introduced it; the section on `xmlwriter` says
@@ -84,6 +84,7 @@ limit.
 | `limit-entity-depth` | `CodeLimitEntityDepth` | `MaxEntityDepth`: nesting of entity references | 32 |
 | `limit-dtd-size` | `CodeLimitDTDSize` | `MaxDTDSize`: length of the DOCTYPE declaration with its internal subset | 1 MiB |
 | `limit-elements` | `CodeLimitElements` | `MaxElements`: elements in the whole document, those passed over by `Skip` included; reported at the start tag that exceeds it | no limit (zero and negative values) |
+| `limit-namespaces` | `CodeLimitNamespaces` | `MaxNamespaces`: namespace declarations in scope at one time, those of all open elements together, default 256 (added in v0.4.0). The position is that of the element whose declarations go over the limit. |
 
 ### Well-formed constructs the reader does not process (`unsupported-*`)
 
@@ -141,6 +142,7 @@ The meaning is that of the reader, applied to what the caller asks the writer to
 | `CodeLimitNameLength` | `limit-name-length` | `Limits.MaxNameLength`: a qualified name or a PI target, default 16 KiB. |
 | `CodeLimitAttributes` | `limit-attributes` | `Limits.MaxAttributes`: attributes of one element, namespace declarations included, default 4096. |
 | `CodeLimitTextSize` | `limit-text-size` | `Limits.MaxTextSize`: a run of text between two tags (several `Text` calls add up), a CDATA section, a comment, the data of a PI, an attribute value or a namespace name, default 16 MiB. |
+| `CodeLimitNamespaces` | `limit-namespaces` | `Limits.MaxNamespaces`: namespace declarations in scope at one time, those the writer adds with `AutoNamespaces` included, default 256. |
 
 The limits of the writer have the defaults of the reader, so a document written with default limits can be read
 with default limits. Zero in `xmlwriter.Limits` means the default, a negative value no limit.
@@ -163,3 +165,32 @@ with default limits. Zero in `xmlwriter.Limits` means the default, a negative va
 | `usage-end` | `CodeUsageEnd` | `End` without an open element; `EndEmpty` after content. |
 | `usage-token` | `CodeUsageToken` | `WriteToken` got a token of an unknown kind. |
 | `usage-options` | `CodeUsageOptions` | `Options` that contradict each other or the call: `Indent` with characters other than spaces and tabs, `AutoNamespaces` with `NoNamespaces`; with `NoNamespaces`, a name with a namespace or prefix, or namespace declarations. |
+
+## xmltree
+
+The functions and methods of `xmltree` return `*xmltree.Error` with `Code`, `Line` and `Column` (the place in the
+source of the node or attribute the error is about; zero for a node that was not read from a source),
+`FirstLine` and `FirstColumn` (for `id-duplicate`) and `Message`. An error of the source of tokens
+(`*xmlreader.Error`) and an error of the writer (`*xmlwriter.Error`) are returned as they are, with their own
+codes. A change that the tree refuses changes nothing.
+
+The codes were added in v0.4.0. `limit-nodes` and `id-duplicate` have the names they had in the tree of goxadesgo.
+
+### Codes of the reader that the tree uses
+
+| Constant (`xmltree.`) | Code | When the tree reports it |
+|---|---|---|
+| `CodeOutsideRoot` | `xml-content-outside-root` | A second root element, or text other than white space, put at the top level of a document (`Append`, `InsertBefore`, `Replace`) or given there by a source of tokens. |
+| `CodeNoRoot` | `xml-no-root` | `ReadDocument` got no root element from the source. |
+
+### Codes of the tree
+
+| Code | Constant | Meaning |
+|---|---|---|
+| `limit-nodes` | `CodeLimitNodes` | The source has more nodes (elements, text nodes, comments, processing instructions) than `Options.MaxNodes`, default 2 000 000. The position is that of the first node over the limit; no tree is returned. |
+| `id-duplicate` | `CodeIDDuplicate` | Two elements have the same identifier (`Options.IDs`, `Options.IDAttributes`, `Document.IndexIDs`). `Line` and `Column` are the place of the second attribute, `FirstLine` and `FirstColumn` of the first. |
+| `tree-has-parent` | `CodeHasParent` | A node that has a parent was given as a new child. Remove it first, or clone it. |
+| `tree-cycle` | `CodeCycle` | A node was put into itself or into one of its descendants. |
+| `tree-node-kind` | `CodeNodeKind` | The operation does not fit the kind of node: a child for a node that is not an element or a document, a document node or nil as a child, a method that the kind of node does not have (`SetText`, `SetAttr`, `SetAttrs`, `SetNamespaces`, `DeclareNamespace`, `SetSelfClosing` on something other than an element; `SetName` on a node without a name; `SetData` on an element or a document; `SetCDATA` on something other than text), the zero `Node`. |
+| `tree-not-child` | `CodeNotChild` | The node given to `Remove`, `Replace` or as the reference of `InsertBefore` is not a child of the node. |
+| `tree-source` | `CodeSource` | The source of tokens did not give the tokens of a document: it ended inside an element, gave an end tag without a start tag or a token of an unknown kind, or `ReadElement` was called with a token that is not a start tag. |

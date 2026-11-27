@@ -1,0 +1,175 @@
+package github.com/polestorm/goxmlgo/xmltree
+
+const (
+	CodeOutsideRoot = xmlreader.CodeOutsideRoot
+	CodeNoRoot      = xmlreader.CodeNoRoot
+
+	CodeLimitNodes  = "limit-nodes"
+	CodeIDDuplicate = "id-duplicate"
+	CodeHasParent   = "tree-has-parent"
+	CodeCycle       = "tree-cycle"
+	CodeNodeKind    = "tree-node-kind"
+	CodeNotChild    = "tree-not-child"
+	CodeSource      = "tree-source"
+)
+
+const DefaultMaxNodes = 2_000_000
+
+const (
+	KindDocument Kind = iota + 1
+	KindElement
+
+	KindText
+	KindComment
+	KindProcInst
+)
+
+type Document struct {
+	XMLDeclaration bool
+	Standalone     string
+
+	Doctype bool
+	// contains filtered or unexported fields
+}
+
+type Error struct {
+	Code string
+
+	Line, Column int
+
+	FirstLine, FirstColumn int
+
+	Message string
+}
+
+type Kind uint8
+
+type (
+	Name    = xmlreader.Name
+	Attr    = xmlreader.Attr
+	Binding = xmlreader.Binding
+)
+
+type Node struct {
+	// contains filtered or unexported fields
+}
+
+type Options struct {
+	Reader xmlreader.Options
+
+	MaxNodes int
+
+	IDs bool
+
+	IDAttributes []string
+}
+
+type Reader struct {
+	// contains filtered or unexported fields
+}
+
+func NewCDATA(data string) *Node
+
+func NewComment(data string) *Node
+
+func NewDocument() *Document
+
+func NewElement(name Name) *Node
+
+func NewProcInst(target, data string) *Node
+
+func NewReader(n *Node) *Reader
+
+func NewText(data string) *Node
+
+func Parse(r io.Reader, opts Options) (*Document, error)
+
+func ReadDocument(src xmlreader.TokenReader, opts Options) (*Document, error)
+
+func ReadElement(src xmlreader.TokenReader, start xmlreader.Token, opts Options) (*Node, error)
+
+func (d *Document) ByID(id string) (*Node, bool)
+
+func (d *Document) IDs() int
+
+func (d *Document) IndexIDs(attributes ...string) error
+
+func (d *Document) Node() *Node
+
+func (d *Document) Root() *Node
+
+func (d *Document) WriteTo(w *xmlwriter.Writer) error
+
+func (e *Error) Error() string
+
+func (n *Node) Append(child *Node) error
+
+func (n *Node) Attr(space, local string) (string, bool)
+
+func (n *Node) Attrs() []Attr
+
+func (n *Node) Children() []*Node
+
+func (n *Node) Clone() *Node
+
+func (n *Node) Column() int
+
+func (n *Node) Data() string
+
+func (n *Node) DeclareNamespace(prefix, uri string) error
+
+func (n *Node) FirstChild() *Node
+
+func (n *Node) InScopeNamespaces() []Binding
+
+func (n *Node) InsertBefore(child, ref *Node) error
+
+func (n *Node) IsCDATA() bool
+
+func (n *Node) Kind() Kind
+
+func (n *Node) LastChild() *Node
+
+func (n *Node) Line() int
+
+func (n *Node) LookupNamespace(prefix string) (string, bool)
+
+func (n *Node) Name() Name
+
+func (n *Node) Namespaces() []Binding
+
+func (n *Node) NextSibling() *Node
+
+func (n *Node) Parent() *Node
+
+func (n *Node) PrevSibling() *Node
+
+func (n *Node) Remove(child *Node) error
+
+func (n *Node) RemoveAttr(space, local string) bool
+
+func (n *Node) Replace(old, child *Node) error
+
+func (n *Node) SelfClosing() bool
+
+func (n *Node) SetAttr(name Name, value string) error
+
+func (n *Node) SetAttrs(attrs []Attr) error
+
+func (n *Node) SetCDATA(cdata bool) error
+
+func (n *Node) SetData(data string) error
+
+func (n *Node) SetName(name Name) error
+
+func (n *Node) SetNamespaces(declarations []Binding) error
+
+func (n *Node) SetSelfClosing(selfClosing bool) error
+
+func (n *Node) SetText(data string) error
+
+func (n *Node) Text() string
+
+func (n *Node) WriteTo(w *xmlwriter.Writer) error
+
+func (r *Reader) Next() (xmlreader.Token, error)

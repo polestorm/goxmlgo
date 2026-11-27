@@ -1,0 +1,3 @@
+# Tree round trip on W3C XML Conformance (TestTreeRoundTrip, go test ./xmltree -update).
+# in scope 775, passing 775
+# mode: failing

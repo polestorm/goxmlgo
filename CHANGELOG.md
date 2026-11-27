@@ -2,6 +2,34 @@
 
 All release tags of this repository are signed (`git tag -s`); check one with `git tag -v vX.Y.Z`.
 
+## Unreleased (to be v0.4.0)
+
+The tree.
+
+- `xmltree`: an in-memory tree that can be changed and written back. `Parse` and `ReadDocument` build a whole
+  document, `ReadElement` one element in the middle of a stream, leaving the stream right after it; `WriteTo`
+  writes through an `xmlwriter.Writer`, `NewReader` gives the tokens of a tree. A tree that was not changed is
+  written with the same bytes as the stream it was built from, for every document of the W3C XML Conformance
+  Test Suite that the reader accepts (775) and of the corpus.
+- A node is read and changed through methods only, so the links between nodes are always consistent; adding,
+  inserting and removing a child take constant time. `Append`, `InsertBefore`, `Remove`, `Replace`, `SetText`,
+  `SetAttr`, `RemoveAttr`, `Clone` and setters for the data of a node. A node moved or copied to a place with
+  other namespace declarations is written with the declarations it needs.
+- Nodes, attributes and text of a tree built from a source are allocated in blocks: about 0.01 allocations per
+  node on a document without attributes.
+- A limit on the number of nodes, on by default (`Options.MaxNodes`); an optional index of identifiers
+  (`Document.ByID`); errors with fixed codes (`docs/errors.md`).
+- Added to `xmlreader`: `Reader.InScopeNamespaces`. Added to `xmlwriter`: `Writer.LookupNamespace`.
+- Changed in `xmlreader` and `xmlwriter`: a new limit, `Limits.MaxNamespaces` (256 by default), on the number of
+  namespace declarations in scope at one time, with the code `limit-namespaces`. Without it a document within
+  all other default limits could slow the reader down about 150 times (2 million declarations in scope, searched
+  for every prefix). A document with more declarations in scope, accepted until v0.3.0, is now rejected unless
+  the limit is raised or turned off.
+- Changed in `xmlreader`: the declaration `xmlns:xml="http://www.w3.org/XML/1998/namespace"` is returned among the
+  namespace declarations of its element (`Token.Namespaces`, `DeclaredNamespaces`) like any other; until v0.3.0
+  it was left out, so it was lost when a document was read and written back. The scope does not change.
+- Tests of hostile and pathological inputs for the reader, the writer and the tree (`safety_test.go`).
+
 ## v0.3.0 (2026-11-27)
 
 The writer.

@@ -102,29 +102,31 @@ Zasady:
 - UTF-8 bez BOM; końce wierszy takie, jakie podał wywołujący; wcięcia tylko jako opcja (`Indent`), domyślnie
   wyłączona, bo zmieniają treść mieszaną.
 
-## Drzewo (etap 4)
+## Drzewo (etap 4, wykonany; decyzje w ADR 0006)
 
 ```go
 doc, err := xmltree.Parse(r, xmltree.Options{})        // cały dokument z io.Reader
 doc, err := xmltree.ReadDocument(src, opts)            // z dowolnego TokenReader
 el, err  := xmltree.ReadElement(src, startToken, opts) // jedno poddrzewo w środku strumienia
-err = el.WriteTo(w)                                    // przez xmlwriter
+err = el.WriteTo(w)                                    // przez xmlwriter, w miejscu, w którym jest pisarz
+err = doc.WriteTo(w)                                   // z deklaracją XML; Close woła wywołujący
 src2 := xmltree.NewReader(el)                          // drzewo jako źródło tokenów
 ```
 
-- węzeł: rodzaj (element, tekst, komentarz, PI), nazwa, atrybuty w kolejności, deklaracje przestrzeni nazw
-  elementu, dane, rodzic, dzieci, wiersz i kolumna ze źródła (zero dla węzłów utworzonych w pamięci);
-- zmiany: dodanie, wstawienie przed, usunięcie i zastąpienie dziecka; ustawienie i usunięcie atrybutu; ustawienie
-  tekstu; tworzenie węzłów. Operacja, która dałaby dokument źle uformowany (drugi korzeń, zła nazwa), jest błędem
-  w chwili wywołania albo najpóźniej przy zapisie, zawsze ze stałym kodem;
-- przestrzenie nazw: węzeł pamięta deklaracje ze źródła; `LookupNamespace` i `InScopeNamespaces` idą w górę po
-  rodzicach. Węzeł przeniesiony w inne miejsce zapisuje się poprawnie, bo zapis poddrzewa uzupełnia brakujące
-  deklaracje (tryb automatyczny pisarza);
-- limit węzłów domyślnie włączony (wartość domyślna jak dziś w `goxadesgo`: 2 000 000), kod `limit-nodes`;
-- potrzeby istniejących drzew, które zakres musi pokryć: rejestr identyfikatorów (atrybuty typu ID z ATTLIST
-  i z listy nazw podanej w opcjach, błąd przy powtórzeniu), przestrzenie nazw w zakresie każdego węzła, pozycje.
-  Lista do uzupełnienia przeglądem `../goxadesgo/internal/xmltree` i `../goxsdgo/internal/schema/dom.go` na
-  początku etapu 4.
+- węzeł (`Node`) dostępny wyłącznie przez metody: rodzaj (dokument, element, tekst, komentarz, PI), nazwa,
+  atrybuty w kolejności, deklaracje przestrzeni nazw elementu, dane, CDATA, postać pustego elementu, wiersz
+  i kolumna ze źródła (zero dla węzłów utworzonych w pamięci); rodzic, pierwsze i ostatnie dziecko, rodzeństwo;
+- zmiany: `Append`, `InsertBefore`, `Remove`, `Replace` (w stałym czasie), `SetText`, `SetAttr`, `RemoveAttr`,
+  `SetAttrs`, `DeclareNamespace`, `SetNamespaces`, `SetName`, `SetData`, `Clone`, `NewElement`, `NewText`,
+  `NewCDATA`, `NewComment`, `NewProcInst`, `NewDocument`. Struktura jest spójna z konstrukcji;
+  to, co dałoby dokument źle uformowany, jest błędem ze stałym kodem przy operacji (drugi element główny, tekst
+  poza nim) albo przy zapisie (nazwy, znaki, powtórzone atrybuty: kody pisarza);
+- przestrzenie nazw: element trzyma swoje deklaracje i, po wyjęciu z miejsca, zapamiętany zakres; `WriteTo`
+  dopisuje w miejscu zapisu to, czego brakuje (kontekst, prefiksy nazw), w stałej kolejności, w obu trybach pisarza;
+- limit węzłów domyślnie włączony (2 000 000), kod `limit-nodes`; rejestr identyfikatorów opcjonalny (`ByID`,
+  `IndexIDs`), kod `id-duplicate`;
+- drzewo niezmienione zapisuje się tymi samymi bajtami co strumień, z którego powstało (K3);
+- co zostaje u konsumentów (numer węzła w kolejności dokumentu, łączenie tekstów): `../requirements/tree.md`.
 
 ## Strumień i drzewo razem (etap 5)
 

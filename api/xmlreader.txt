@@ -50,6 +50,7 @@ const (
 	CodeLimitEntityDepth    = "limit-entity-depth"
 	CodeLimitDTDSize        = "limit-dtd-size"
 	CodeLimitElements       = "limit-elements"
+	CodeLimitNamespaces     = "limit-namespaces"
 	CodeExternalEntity      = "unsupported-external-entity"
 	CodeEntityUnresolved    = "unsupported-entity-unresolved"
 	CodeConditionalSection  = "unsupported-conditional-section"
@@ -107,6 +108,8 @@ type Limits struct {
 	MaxDTDSize         int
 
 	MaxElements int
+
+	MaxNamespaces int
 }
 
 type Name struct {
@@ -175,6 +178,8 @@ func (s *NamespaceScope) Update(t Token)
 func (r *Reader) Declaration() (Declaration, error)
 
 func (r *Reader) DeclaredNamespaces() []Binding
+
+func (r *Reader) InScopeNamespaces() []Binding
 
 func (r *Reader) LookupNamespace(prefix string) (string, bool)
 

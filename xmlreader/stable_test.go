@@ -19,7 +19,9 @@ import (
 // Historia: v0.1.0 i v0.2.0 c94e0e4d182466adecdbf989e2c43d0a909e1538275debc59e8ad3d9935fc76d; od v0.3.0 bez
 // pustych tokenów tekstu (ADR 0005). Że to jedyna różnica względem goxsdgo v0.3.0, sprawdza plik po pliku
 // TestSameAsGoxsdgo w tools/bench. Dla korpusu to samo zapewniają wzorce *.tokens (TestCorpus).
-const stableXMLConfSum = "4b0aee6694c32b0b7c5a5a12c24b3627aee01634ff1d121f195b91c147bfa93a"
+// Od v0.4.0 suma jest inna także dlatego, że czytnik oddaje deklarację xmlns:xml (ADR 0006, pkt 16; poprzednia suma
+// 4b0aee66…).
+const stableXMLConfSum = "4e290790731fccfafe0c1b302808411088fc5d7ef65ed2d1f5e7f6660309fbd0"
 
 // TestTokenStreamStable: strumień tokenów i błędów każdego przypadku W3C XML Conformance w zakresie (1 727,
 // dobrze i źle uformowane) jest taki sam jak w poprzednim wydaniu, poza różnicami wymienionymi

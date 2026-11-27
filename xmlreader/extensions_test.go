@@ -700,3 +700,66 @@ func TestStringsStayValid(t *testing.T) {
 }
 
 var _ = testkit.FetchHint
+
+// TestInScopeNamespaces: InScopeNamespaces daje po jednym wiązaniu na związany prefiks, zgodnie z LookupNamespace
+// w tym samym miejscu (po tokenie początku: ten element, po tokenie końca: jego rodzic), posortowane według
+// prefiksu, bez prefiksu xml i bez przestrzeni domyślnej zniesionej przez xmlns=""; wynik jest kopią.
+// REQ: XML-030
+func TestInScopeNamespaces(t *testing.T) {
+	src := `<a xmlns="urn:d" xmlns:q="urn:q" xmlns:p="urn:p1"><p:b xmlns:p="urn:p2"><c xmlns=""><d xmlns:r="urn:r"/></c></p:b><e/></a>`
+	want := []string{
+		"start a: =urn:d p=urn:p1 q=urn:q",
+		"start b: =urn:d p=urn:p2 q=urn:q",
+		"start c: p=urn:p2 q=urn:q",
+		"start d: p=urn:p2 q=urn:q r=urn:r",
+		"end d: p=urn:p2 q=urn:q",
+		"end c: =urn:d p=urn:p2 q=urn:q",
+		"end b: =urn:d p=urn:p1 q=urn:q",
+		"start e: =urn:d p=urn:p1 q=urn:q",
+		"end e: =urn:d p=urn:p1 q=urn:q",
+		"end a:",
+	}
+	r := New(strings.NewReader(src), Options{})
+	if got := r.InScopeNamespaces(); len(got) != 0 {
+		t.Errorf("before the first token: %v", got)
+	}
+	var got []string
+	var kept []Binding
+	for {
+		tok, err := r.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+		in := r.InScopeNamespaces()
+		line := map[Kind]string{KindStartElement: "start ", KindEndElement: "end "}[tok.Kind] + tok.Name.Local + ":"
+		for _, b := range in {
+			line += " " + b.Prefix + "=" + b.URI
+			if uri, ok := r.LookupNamespace(b.Prefix); !ok || uri != b.URI {
+				t.Errorf("%s: %q is bound to %q in the result, LookupNamespace says %q, %v", line, b.Prefix, b.URI, uri, ok)
+			}
+		}
+		for _, p := range []string{"", "p", "q", "r"} {
+			if _, ok := r.LookupNamespace(p); ok != strings.Contains(line, " "+p+"=") {
+				t.Errorf("%s: prefix %q bound: %v", line, p, ok)
+			}
+		}
+		got = append(got, line)
+		if kept == nil {
+			kept = in
+		}
+	}
+	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Errorf("got\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+	if len(kept) != 3 || kept[0] != (Binding{URI: "urn:d"}) || kept[2] != (Binding{Prefix: "q", URI: "urn:q"}) {
+		t.Errorf("the result of the first call changed: %v", kept)
+	}
+	nr := New(strings.NewReader(`<a xmlns="urn:d" xmlns:p="urn:p"/>`), Options{NoNamespaces: true})
+	nr.Next()
+	if got := nr.InScopeNamespaces(); len(got) != 0 {
+		t.Errorf("without namespace processing: %v", got)
+	}
+}

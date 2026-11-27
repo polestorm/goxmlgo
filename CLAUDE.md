@@ -51,8 +51,9 @@ kolumnę „Stan” w `docs/roadmap.md`.
 - etapy w kolejności z `docs/roadmap.md`; etapy 0 (narzędzia i szkielet testów) i 1 (przeniesienie czytnika bez
   zmiany zachowania) wykonane 2026-11-26 (`docs/adr/0003-reader-transfer.md`), etap 2 (rozszerzenia czytnika)
   tego samego dnia (`docs/adr/0004-reader-extensions.md`), etap 3 (pisarz `xmlwriter`) 2026-11-27
-  (`docs/adr/0005-writer.md`); dowody w `docs/testing.md`; **następny krok: wydanie v0.3.0 i etap 4** (drzewo); pytania 6, 7
-  i 13 właściciel rozstrzygnął 2026-11-27;
+  (`docs/adr/0005-writer.md`); dowody w `docs/testing.md`; etap 4 (drzewo `xmltree`) tego samego dnia
+  (`docs/adr/0006-tree.md`); v0.3.0 wydane; **następny krok: commit etapu 4 i wydanie v0.4.0 na prośbę
+  właściciela, potem etap 5** (strumień i utwardzanie; pytania 15 i 16);
 - pytania 1–3 są rozstrzygnięte (ADR 0002: repozytorium publiczne od v0.1.0, deklaracje przestrzeni nazw
   w tokenie, zapis powrotny zachowuje treść, nie bajty), więc etapy 0–2 nie mają blokad decyzyjnych; pozostałe
   pytania (`docs/adr/open-questions.md`) rozstrzygamy w etapach, z rekomendacją;

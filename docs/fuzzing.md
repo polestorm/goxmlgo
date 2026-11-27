@@ -56,7 +56,7 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 | `FuzzReader` | `xmlreader` | bez paniki; czytanie się kończy; pozycje tokenów i błędów w granicach wejścia; błąd zawsze typu `*Error`. Od etapu 2: po błędzie stale ten sam błąd; strumień nie zależy od podziału wejścia na odczyty; czytnik po `Reset` daje ten sam strumień co nowy; czytanie ze `Skip` kończy się tak samo jak czytanie token po tokenie | 1, rozszerzenia od 2 |
 | `FuzzRoundTrip` | `xmlwriter` | wejście przyjęte przez czytnik: zapis bez błędu, ponowny odczyt daje równy strumień tokenów, drugi zapis te same bajty | 3 |
 | `FuzzWriter` | `xmlwriter` | dowolny ciąg wywołań (tryb jawny, automatyczny, bez przestrzeni nazw, z wcięciami, z małymi limitami): każdy błąd to `*Error` z kodem i numerem wywołania; same udane wywołania dają te same bajty; wyjście zamknięte bez błędu czytnik domyślny czyta bez błędu i oddaje te same nazwy rozwinięte, wartości i dane | 3 |
-| `FuzzTree` | `xmltree` | drzewo → zapis równe strumień → zapis; ciąg operacji zmiany nie psuje wskaźników na rodzica ani dobrej formy zapisu | 4 |
+| `FuzzTree` | `xmltree` | wejście przyjęte przez czytnik: `Parse` → `WriteTo` daje bajty przelotu, `NewReader` strumień źródła, kopia głęboka te same bajty; wejście odrzucone przez czytnik odrzuca `Parse` z tym samym błędem. Potem ciąg operacji zmiany (dodanie, wstawienie, usunięcie, zastąpienie, atrybuty, tekst, kopia, deklaracje): wskaźniki na rodzica spójne, błąd operacji zawsze `*Error`; drzewo po zmianach albo daje błąd pisarza ze stałym kodem, albo dokument, który czytnik czyta i z którego odtwarza strumień czytnika drzewa; drugi zapis te same bajty | 4 |
 
 ## Przebiegi
 
@@ -70,3 +70,8 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 | Data | Fuzzer | Błąd | Poprawka | Wejście regresji |
 |---|---|---|---|---|
 | 2026-11-27 | `FuzzWriter` (przebieg sprawdzający, lokalnie) | tryb automatyczny zapisywał deklarację przestrzeni nazw wziętej z `Name.Space` bez sprawdzenia znaków: `<a xmlns="\x0f">`, którego czytnik nie przyjmuje | nazwa przestrzeni deklarowanej przez pisarza jest sprawdzana jak podana jawnie (WR-012) | `xmlwriter/testdata/fuzz/FuzzWriter/2fc1d81895408ef0`; przypadki w `TestAutoNamespaces` |
+| 2026-11-27 | `FuzzTree` (przebieg sprawdzający, lokalnie) | czytnik drzewa dawał token tekstu dla białych znaków na najwyższym poziomie dokumentu, którego czytnik po zapisie nie daje (strumień drzewa różny od strumienia zapisu) | czytnik drzewa pomija tekst na najwyższym poziomie; `WriteTo` nadal go zapisuje (ADR 0006, pkt 5) | `xmltree/testdata/fuzz/FuzzTree/d02a241bbb0f7fa8` |
+| 2026-11-27 | `FuzzTree` (przebieg sprawdzający, lokalnie) | czytnik drzewa oddawał deklarację `xmlns:xml` ustawioną na elemencie, której czytnik po zapisie nie oddaje w tokenie | przyczyną był wyjątek w czytniku: od v0.4.0 czytnik oddaje deklarację `xmlns:xml` jak każdą inną, więc wraca ona z zapisu (ADR 0006, pkt 16) | `xmltree/testdata/fuzz/FuzzTree/002bfc93e9510fb2` |
+| 2026-11-27 09:56 | `2b6c2ae` (zmiany) | ./xmlreader | `FuzzReader` | 10m2s | 11265187 | ok |
+| 2026-11-27 10:06 | `2b6c2ae` (zmiany) | ./xmltree | `FuzzTree` | 10m2s | 10713648 | ok |
+| 2026-11-27 10:16 | `2b6c2ae` (zmiany) | ./xmlwriter | `FuzzRoundTrip` | 10m3s | 13798644 | ok |

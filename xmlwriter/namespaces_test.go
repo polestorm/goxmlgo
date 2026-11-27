@@ -528,3 +528,76 @@ func TestLimitsMatchReader(t *testing.T) {
 		t.Errorf("the default reader rejects a document at the default limits of the writer: %v", err)
 	}
 }
+
+// TestLookupNamespace: LookupNamespace odpowiada o zakresie najgłębszego otwartego elementu według deklaracji już
+// zapisanych, także tych dopisanych w trybie automatycznym; po End wraca zakres rodzica.
+// REQ: WR-019
+func TestLookupNamespace(t *testing.T) {
+	w := New(&bytes.Buffer{}, Options{})
+	look := func(prefix, want string) {
+		t.Helper()
+		uri, ok := w.LookupNamespace(prefix)
+		if uri != want || ok != (want != "") {
+			t.Errorf("LookupNamespace(%q) = %q, %v; want %q", prefix, uri, ok, want)
+		}
+	}
+	look("", "")
+	look("p", "")
+	look("xml", nsXML)
+	if err := w.Start(qn("urn:d", "a", ""), bind("", "urn:d"), bind("p", "urn:p1")); err != nil {
+		t.Fatal(err)
+	}
+	look("", "urn:d")
+	look("p", "urn:p1")
+	if err := w.Start(qn("", "b", ""), bind("", ""), bind("p", "urn:p2")); err != nil {
+		t.Fatal(err)
+	}
+	look("", "")
+	look("p", "urn:p2")
+	look("q", "")
+	if err := w.EndEmpty(); err != nil {
+		t.Fatal(err)
+	}
+	look("", "urn:d")
+	look("p", "urn:p1")
+	if err := seq(w.End(), w.Close()); err != nil {
+		t.Fatal(err)
+	}
+	// tryb automatyczny: deklaracja dopisana przez pisarza jest widoczna
+	w = New(&bytes.Buffer{}, Options{AutoNamespaces: true})
+	if err := w.Start(qn("urn:x", "a", "x")); err != nil {
+		t.Fatal(err)
+	}
+	look("x", "urn:x")
+	// bez przestrzeni nazw nic nie jest związane
+	w = New(&bytes.Buffer{}, Options{NoNamespaces: true})
+	w.Start(n("a"))
+	look("xml", "")
+	look("", "")
+}
+
+// TestXMLPrefixDeclaration: deklaracja xmlns:xml (dozwolona, choć prefiks xml jest związany zawsze) jest oddawana
+// przez czytnik jak każda inna deklaracja elementu, więc wraca z zapisu powrotnego; nie zmienia zakresu i nie
+// trafia do InScopeNamespaces.
+// REQ: XML-025 XML-030 STR-001
+func TestXMLPrefixDeclaration(t *testing.T) {
+	src := `<a xmlns:xml="http://www.w3.org/XML/1998/namespace" xmlns:p="urn:p" xml:lang="pl"><b xml:space="preserve"/></a>`
+	r := xmlreader.New(strings.NewReader(src), xmlreader.Options{})
+	tok, err := r.Next()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(tok.Namespaces) != 2 || tok.Namespaces[0] != (Binding{Prefix: "xml", URI: nsXML}) || tok.Namespaces[1].Prefix != "p" {
+		t.Errorf("Token.Namespaces: %v", tok.Namespaces)
+	}
+	if in := r.InScopeNamespaces(); len(in) != 1 || in[0].Prefix != "p" {
+		t.Errorf("InScopeNamespaces: %v", in)
+	}
+	if uri, ok := r.LookupNamespace("xml"); !ok || uri != nsXML {
+		t.Errorf("LookupNamespace(xml) = %q, %v", uri, ok)
+	}
+	out, err := rewrite([]byte(src), false, Options{})
+	if err != nil || string(out) != src {
+		t.Errorf("round trip: %s (%v)", out, err)
+	}
+}

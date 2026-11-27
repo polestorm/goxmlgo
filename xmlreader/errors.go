@@ -45,6 +45,7 @@ const (
 	CodeLimitEntityDepth    = "limit-entity-depth"
 	CodeLimitDTDSize        = "limit-dtd-size"
 	CodeLimitElements       = "limit-elements"
+	CodeLimitNamespaces     = "limit-namespaces"
 	CodeExternalEntity      = "unsupported-external-entity"   // a reference to an external entity in content: never read
 	CodeEntityUnresolved    = "unsupported-entity-unresolved" // the entity may be declared in the external subset, which is never read
 	CodeConditionalSection  = "unsupported-conditional-section"

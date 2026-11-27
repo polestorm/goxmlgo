@@ -22,6 +22,7 @@ package xmlreader
 import (
 	"bytes"
 	"io"
+	"sort"
 	"strings"
 	"unicode/utf8"
 )
@@ -113,11 +114,14 @@ type Limits struct {
 	// other limits it is off by default (a streaming reader keeps nothing per element): zero and negative values
 	// mean no limit. Set it when the caller builds something for every element.
 	MaxElements int
+	// MaxNamespaces is the number of namespace declarations in scope at one time, those of all open elements
+	// together. It bounds the cost of resolving a prefix, which grows with that number.
+	MaxNamespaces int
 }
 
 // DefaultLimits returns the default limits: depth 512, names 16 KiB, 4096 attributes, text tokens 16 MiB, entity
-// expansion 4 MiB in total, entity nesting 32, DOCTYPE 1 MiB, and no limit on the number of elements
-// (MaxElements is zero).
+// expansion 4 MiB in total, entity nesting 32, DOCTYPE 1 MiB, 256 namespace declarations in scope, and no limit
+// on the number of elements (MaxElements is zero).
 func DefaultLimits() Limits {
 	return Limits{
 		MaxDepth:           512,
@@ -127,6 +131,7 @@ func DefaultLimits() Limits {
 		MaxEntityExpansion: 4 << 20,
 		MaxEntityDepth:     32,
 		MaxDTDSize:         1 << 20,
+		MaxNamespaces:      256,
 	}
 }
 
@@ -150,6 +155,7 @@ func (l Limits) withDefaults() Limits {
 		MaxEntityDepth:     pick(l.MaxEntityDepth, d.MaxEntityDepth),
 		MaxDTDSize:         pick(l.MaxDTDSize, d.MaxDTDSize),
 		MaxElements:        pick(l.MaxElements, -1),
+		MaxNamespaces:      pick(l.MaxNamespaces, d.MaxNamespaces),
 	}
 }
 
@@ -456,6 +462,30 @@ func (r *Reader) DeclaredNamespaces() []Binding {
 	for _, b := range r.ns[top.nsMark:] {
 		out = append(out, Binding{Prefix: b.prefix, URI: b.uri})
 	}
+	return out
+}
+
+// InScopeNamespaces returns the namespaces in scope of the current element (as LookupNamespace: after
+// KindStartElement that element, after KindEndElement its parent): one binding for each prefix that is bound,
+// sorted by prefix, the default namespace (empty prefix) first. A default namespace undeclared by xmlns="" is not
+// in the result, and neither is the prefix xml, which is always bound. The result is a copy.
+func (r *Reader) InScopeNamespaces() []Binding {
+	var out []Binding
+	var seen []string // prefiksy już rozstrzygnięte przez bliższą deklarację, także zniesione przez xmlns=""
+next:
+	for i := len(r.ns) - 1; i >= 0; i-- {
+		b := r.ns[i]
+		for _, p := range seen {
+			if p == b.prefix {
+				continue next
+			}
+		}
+		seen = append(seen, b.prefix)
+		if b.uri != "" && b.prefix != "xml" {
+			out = append(out, Binding{Prefix: b.prefix, URI: b.uri})
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Prefix < out[j].Prefix })
 	return out
 }
 
@@ -1537,9 +1567,10 @@ func (r *Reader) namespaces(name string, l, c int) (Name, error) {
 		case prefix != "" && a.value == "":
 			return Name{}, errorAt(CodeNoPrefixUndeclaring, a.line, a.column, "prefix "+prefix+" must not be undeclared")
 		}
-		if prefix != "xml" {
-			r.ns = append(r.ns, binding{prefix: prefix, uri: a.value})
-		}
+		r.ns = append(r.ns, binding{prefix: prefix, uri: a.value})
+	}
+	if len(r.ns) > r.lim.MaxNamespaces {
+		return Name{}, errorAt(CodeLimitNamespaces, l, c, "more namespace declarations in scope than the limit")
 	}
 	en, err := r.resolve(name, true, l, c)
 	if err != nil {

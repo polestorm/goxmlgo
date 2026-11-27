@@ -22,6 +22,7 @@ const (
 	CodeLimitNameLength     = xmlreader.CodeLimitNameLength
 	CodeLimitAttributes     = xmlreader.CodeLimitAttributes
 	CodeLimitTextSize       = xmlreader.CodeLimitTextSize
+	CodeLimitNamespaces     = xmlreader.CodeLimitNamespaces
 
 	CodePIData        = "xml-pi-data"
 	CodeNamespaceName = "ns-name-mismatch"
@@ -49,6 +50,8 @@ type Limits struct {
 	MaxAttributes int
 
 	MaxTextSize int
+
+	MaxNamespaces int
 }
 
 type (
@@ -95,6 +98,8 @@ func (w *Writer) End() error
 func (w *Writer) EndEmpty() error
 
 func (w *Writer) Flush() error
+
+func (w *Writer) LookupNamespace(prefix string) (string, bool)
 
 func (w *Writer) ProcInst(target, data string) error
 

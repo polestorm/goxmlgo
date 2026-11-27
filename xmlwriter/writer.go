@@ -50,12 +50,15 @@ type Limits struct {
 	// two tags (several Text calls in a row add up), a CDATA section, a comment, the data of a PI, an attribute
 	// value.
 	MaxTextSize int
+	// MaxNamespaces is the number of namespace declarations in scope at one time, as in the reader.
+	MaxNamespaces int
 }
 
 // DefaultLimits returns the default limits: depth 512, names 16 KiB, 4096 attributes, text 16 MiB.
 func DefaultLimits() Limits {
 	d := xmlreader.DefaultLimits()
-	return Limits{MaxDepth: d.MaxDepth, MaxNameLength: d.MaxNameLength, MaxAttributes: d.MaxAttributes, MaxTextSize: d.MaxTextSize}
+	return Limits{MaxDepth: d.MaxDepth, MaxNameLength: d.MaxNameLength, MaxAttributes: d.MaxAttributes, MaxTextSize: d.MaxTextSize,
+		MaxNamespaces: d.MaxNamespaces}
 }
 
 func (l Limits) withDefaults() Limits {
@@ -74,6 +77,7 @@ func (l Limits) withDefaults() Limits {
 		MaxNameLength: pick(l.MaxNameLength, d.MaxNameLength),
 		MaxAttributes: pick(l.MaxAttributes, d.MaxAttributes),
 		MaxTextSize:   pick(l.MaxTextSize, d.MaxTextSize),
+		MaxNamespaces: pick(l.MaxNamespaces, d.MaxNamespaces),
 	}
 }
 
@@ -316,6 +320,16 @@ func (w *Writer) WriteToken(t Token) error {
 	return w.fail(CodeUsageToken, "unknown token kind")
 }
 
+// LookupNamespace returns the namespace bound to prefix in the scope of the innermost open element, from the
+// declarations written so far. The empty prefix is the default namespace; it is not bound (false) outside any
+// declaration and after xmlns="". The prefix xml is always bound. With Options.NoNamespaces nothing is bound.
+func (w *Writer) LookupNamespace(prefix string) (string, bool) {
+	if w.noNS {
+		return "", false
+	}
+	return w.lookup(prefix)
+}
+
 // Flush writes what is in the buffer to the io.Writer. It does not change what the document will be.
 func (w *Writer) Flush() error {
 	if err := w.enter(); err != nil {
@@ -479,6 +493,10 @@ func (w *Writer) start(name Name, decls []Binding, attrs []Attr, hint bool) erro
 	declEnd := len(w.bindings)
 	w.next.reset()
 	w.next.n = declEnd - mark
+	if declEnd > w.lim.MaxNamespaces {
+		w.bindings = w.bindings[:mark]
+		return w.fail(CodeLimitNamespaces, "more namespace declarations in scope than the limit")
+	}
 	if w.next.n > w.lim.MaxAttributes {
 		w.bindings = w.bindings[:mark]
 		return w.fail(CodeLimitAttributes, "more namespace declarations than the limit of attributes")
@@ -682,6 +700,9 @@ func (w *Writer) prepareAttr(set *attrSet, name Name, value string) (attrPlan, e
 	}
 	if set.n+need > w.lim.MaxAttributes {
 		return p, w.fail(CodeLimitAttributes, "more attributes than the limit")
+	}
+	if p.declare && len(w.bindings) >= w.lim.MaxNamespaces {
+		return p, w.fail(CodeLimitNamespaces, "more namespace declarations in scope than the limit")
 	}
 	key := attrKey{name.Space, name.Local}
 	if prev, dup := set.find(key); dup {

@@ -31,6 +31,7 @@ const (
 	CodeLimitNameLength     = xmlreader.CodeLimitNameLength
 	CodeLimitAttributes     = xmlreader.CodeLimitAttributes
 	CodeLimitTextSize       = xmlreader.CodeLimitTextSize
+	CodeLimitNamespaces     = xmlreader.CodeLimitNamespaces
 
 	CodePIData        = "xml-pi-data"                 // "?>" in the data of a PI, or white space at its start
 	CodeNamespaceName = "ns-name-mismatch"            // Name.Space is not what Name.Prefix is bound to

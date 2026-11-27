@@ -21,9 +21,8 @@ Kolejność według etapu, w którym pytanie blokuje pracę.
    osobnego pakietu na typy na razie nie wydzielamy ([ADR 0005](0005-writer.md), pkt 2).
 8. **Canonical XML.** `goxadesgo/c14n` to serializacja drzewa według normy W3C, czyli rzecz ogólna. Rekomendacja:
    osobna decyzja po etapie 4, gdy `goxadesgo` przejdzie na `xmltree`; do tego czasu poza zakresem.
-9. **Kształt API drzewa.** Jedna struktura `Node` z rodzajem i polami publicznymi (jak dziś w `goxadesgo`) czy
-   interfejsy na rodzaj węzła? Rekomendacja: jedna struktura, pola publiczne tylko do odczytu w dokumentacji,
-   zmiany metodami, żeby utrzymać wskaźniki na rodzica.
+9. ~~Kształt API drzewa.~~ Rozstrzygnięte 2026-11-27 przez właściciela: węzeł dostępny wyłącznie przez metody
+   ([ADR 0006](0006-tree.md), pkt 1).
 10. **Wybieranie węzłów.** Proste ścieżki (`a/b/@c`) albo podzbiór XPath. `goxsdgo` ma własny podzbiór dla
     ograniczeń tożsamości, `goxadesgo` potrzebuje wyszukiwania po identyfikatorze. Rekomendacja: poza zakresem,
     dopóki nie ma dwóch konsumentów tej samej funkcji; w 1.0 tylko iteracja po dzieciach i `ByID`.
@@ -34,3 +33,15 @@ Kolejność według etapu, w którym pytanie blokuje pracę.
 13. ~~Cel szybkości przelotu (K7).~~ Rozstrzygnięte 2026-11-27: próg względny zamiast „≥ 100 MB/s”: przelot
     czytnik → pisarz ≥ 0,55× szybkości samego czytnika na każdym dokumencie wzorcowym i nie wolniejszy niż przelot
     `encoding/xml`, w jednym przebiegu `tools/bench` ([ADR 0005](0005-writer.md), pkt 13).
+14. ~~Pamięć drzewa.~~ Rozstrzygnięte 2026-11-27: priorytety to bezpieczeństwo, szybkość, pamięć; układ węzła
+    jest prywatny, więc można go zmieniać także po 1.0 ([ADR 0006](0006-tree.md), pkt 15).
+15. ~~Deklaracja `xmlns:xml` w zapisie powrotnym.~~ Rozstrzygnięte 2026-11-27: czytnik oddaje ją jak każdą inną
+    deklarację, bez wyjątku ([ADR 0006](0006-tree.md), pkt 16).
+16. **Porównanie drzewa z innymi bibliotekami.** Kandydaci w Go uruchamiani jako czarna skrzynka w `tools/bench`
+    (np. `beevik/etree`, `antchfx/xmlquery`), z liczbą przypadków W3C, które każdy przyjmuje błędnie; ewentualnie
+    `pugixml` i `libxml2` z zastrzeżeniem o innym języku i mniejszym zakresie kontroli. Pomiar z OXml (Delphi,
+    biblioteka komercyjna) nie jest powtarzalny z zewnątrz, więc najwyżej wewnętrzny. Do decyzji przed etapem 5.
+17. ~~Limit deklaracji przestrzeni nazw w zakresie.~~ Potwierdzony przez właściciela 2026-11-27, z wartością
+    domyślną 256 zamiast 1024 ([ADR 0007](0007-hostile-inputs.md)).
+18. **Pamięć drzewa przy limicie domyślnym** (2 mln węzłów to do ok. 420 MB dla 8 MB wejścia) i koszt prefiksów
+    automatycznych pisarza: [ADR 0007](0007-hostile-inputs.md), „Co zostaje do etapu 5”.
