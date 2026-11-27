@@ -5,7 +5,11 @@ versions; the contract is the code and the position, so a caller can translate o
 once released, keeps its meaning and is not removed. `TestErrorCatalog` checks that this file lists exactly the
 codes the source defines.
 
-The catalogue grows with the packages: `xmlreader` (v0.1.0, below), `xmlwriter` (stage 3), `xmltree` (stage 4).
+The catalogue grows with the packages: `xmlreader` (v0.1.0), `xmlwriter` (v0.3.0), `xmltree` (stage 4).
+
+A code names a rule, not a package. Where the writer refuses what the reader would reject, it reports the code of
+the reader, so each code is listed once, under the package that introduced it; the section on `xmlwriter` says
+which codes of the reader the writer uses.
 
 ## xmlreader
 
@@ -99,3 +103,63 @@ These say nothing about the document and are not fatal: the reader stays as it w
 | Code | Constant | Meaning |
 |---|---|---|
 | `usage-skip` | `CodeUsageSkip` | `Skip` was called when the last token returned by `Next` was not a start tag (or before the first token). |
+
+## xmlwriter
+
+The methods of `xmlwriter.Writer` return `*xmlwriter.Error` with `Code`, `Path` (the open elements at the time of
+the call, `/a/p:b`; `/` at the level of the document), `Call` (the number of the failed call on this Writer, from
+1) and `Message`. An error of the writer is never fatal: nothing of the failed call was written, the Writer is as
+it was before the call, and the caller may go on. An error of the `io.Writer` is not an `*Error`: it is returned
+as it is, by that call and by every call after it.
+
+Sources as above. The codes were added in v0.3.0.
+
+### Codes of the reader that the writer uses
+
+The meaning is that of the reader, applied to what the caller asks the writer to write.
+
+| Constant (`xmlwriter.`) | Code | When the writer reports it |
+|---|---|---|
+| `CodeEncodingInvalid` | `xml-encoding-invalid` | Data or a namespace name that is not valid UTF-8. |
+| `CodeChar` | `xml-char` | A character outside [2] Char in text, an attribute value, a namespace name, a comment, a PI or a CDATA section. |
+| `CodeName` | `xml-name` | An element name, attribute name, namespace prefix or PI target that does not match [5] Name. |
+| `CodeQName` | `ns-qname` | A colon in a local name, a prefix or a PI target, with namespace processing. |
+| `CodeReservedPITarget` | `xml-reserved-pi-target` | A PI target that matches `xml` in any letter case. |
+| `CodeXMLDecl` | `xml-decl` | `Declaration` after something was written, or with a `standalone` other than `yes`, `no` or empty. |
+| `CodeNoRoot` | `xml-no-root` | `Close` before the root element. |
+| `CodeEOF` | `xml-eof` | `Close` with elements still open. |
+| `CodeOutsideRoot` | `xml-content-outside-root` | A second root element; text other than white space, or a CDATA section, outside the root element. |
+| `CodeCDATAEnd` | `xml-cdata-end` | `]]>` in the data of a CDATA section (the writer does not split sections). |
+| `CodeComment` | `xml-comment` | `--` in a comment, or `-` at its end. |
+| `CodeElementTypeMatch` | `wfc-element-type-match` | An end token whose name is not that of the open element. |
+| `CodeUniqueAttSpec` | `wfc-unique-att-spec` | An attribute given twice in one tag, or a namespace prefix declared twice in one tag. |
+| `CodeAttributesUnique` | `nsc-attributes-unique` | Two attributes of one tag with the same expanded name and different prefixes. |
+| `CodePrefixDeclared` | `nsc-prefix-declared` | A name with a prefix that is not declared in scope (without `AutoNamespaces`). |
+| `CodeNoPrefixUndeclaring` | `nsc-no-prefix-undeclaring` | A declaration of a prefix with an empty namespace name. |
+| `CodeReservedPrefixes` | `nsc-reserved-prefixes` | A declaration or name that misuses the prefixes `xml` or `xmlns` or their namespace names; a namespace declaration passed as an attribute. |
+| `CodeLimitDepth` | `limit-depth` | `Limits.MaxDepth`, default 512. |
+| `CodeLimitNameLength` | `limit-name-length` | `Limits.MaxNameLength`: a qualified name or a PI target, default 16 KiB. |
+| `CodeLimitAttributes` | `limit-attributes` | `Limits.MaxAttributes`: attributes of one element, namespace declarations included, default 4096. |
+| `CodeLimitTextSize` | `limit-text-size` | `Limits.MaxTextSize`: a run of text between two tags (several `Text` calls add up), a CDATA section, a comment, the data of a PI, an attribute value or a namespace name, default 16 MiB. |
+
+The limits of the writer have the defaults of the reader, so a document written with default limits can be read
+with default limits. Zero in `xmlwriter.Limits` means the default, a negative value no limit.
+
+### Codes of the writer
+
+| Code | Constant | Rule | Meaning |
+|---|---|---|---|
+| `xml-pi-data` | `CodePIData` | [XML] [16] PI | `?>` in the data of a processing instruction, or white space at its start (a reader returns the data without the white space after the target, so it would not come back). |
+| `ns-name-mismatch` | `CodeNamespaceName` | [NS] 3, 6 | `Name.Space` is not the namespace `Name.Prefix` is bound to in scope: a prefix bound to another namespace, an element in a namespace that is not the default one, an element without a namespace under a default namespace, an attribute in a namespace without a prefix, a prefix on a name without a namespace. With `AutoNamespaces` only what a declaration cannot fix. |
+| `unsupported-carriage-return` | `CodeLineBreak` | [XML] 2.11 | A carriage return in a comment, a PI, a CDATA section or in white space outside the root element. No character reference is possible there, and a reader turns the character into a line feed. In text and attribute values a carriage return is written as `&#13;`. |
+| `unsupported-doctype` | `CodeDoctype` | [XML] 2.8 | `WriteToken` got a DOCTYPE token and `Options.RejectDoctype` is set. By default the token is skipped: the writer does not write DOCTYPE declarations. |
+
+### Calls the state of the writer does not allow (`usage-*`)
+
+| Code | Constant | Meaning |
+|---|---|---|
+| `usage-closed` | `CodeUsageClosed` | A call after a successful `Close`, until `Reset`. |
+| `usage-attr` | `CodeUsageAttr` | `Attr` when no start tag is open: before `Start`, or after content or `End`. |
+| `usage-end` | `CodeUsageEnd` | `End` without an open element; `EndEmpty` after content. |
+| `usage-token` | `CodeUsageToken` | `WriteToken` got a token of an unknown kind. |
+| `usage-options` | `CodeUsageOptions` | `Options` that contradict each other or the call: `Indent` with characters other than spaces and tabs, `AutoNamespaces` with `NoNamespaces`; with `NoNamespaces`, a name with a namespace or prefix, or namespace declarations. |

@@ -20,7 +20,7 @@ Zacznij od `README.md`, potem `docs/roadmap.md`, `docs/adr/0001-scope-and-accept
 - Potrzeby wykraczają poza walidację XSD: pomijanie poddrzew, ponowne użycie czytnika, limit liczby elementów,
   zapis XML (DOCX, XLSX, SVG, JPK, podpis XAdES), modyfikacja i zapis powrotny, przetwarzanie plików kilku GB.
   Dlatego czytnik przechodzi tutaj i rośnie niezależnie od `goxsdgo`.
-- **Kolejność u konsumentów** (`docs/migration.md`): po etapie 1 (v0.1.0) przełącza się `goxsdgo` i `goxadesgo`,
+- **Kolejność u konsumentów** (`docs/migration.md`): `goxsdgo` i `goxadesgo` przełączają się od razu na v0.2.0 (v0.1.0 nie ma poprawki deklaracji XML),
   po etapie 2 (v0.2.0) rusza etap 1 `godocxgo`. Od chwili przeniesienia czytnik w `goxsdgo` jest zamrożony:
   poprawki wchodzą tylko tutaj.
 - Rodzina: `../goxsdgo`, `../gomdgo`, `../gomermaidgo`, `../gopdfgo`, `../godocxgo` powstają tak samo (od zera ze
@@ -50,7 +50,9 @@ kolumnę „Stan” w `docs/roadmap.md`.
 
 - etapy w kolejności z `docs/roadmap.md`; etapy 0 (narzędzia i szkielet testów) i 1 (przeniesienie czytnika bez
   zmiany zachowania) wykonane 2026-11-26 (`docs/adr/0003-reader-transfer.md`), etap 2 (rozszerzenia czytnika)
-  tego samego dnia (`docs/adr/0004-reader-extensions.md`); dowody w `docs/testing.md`; **następny krok: etap 3**;
+  tego samego dnia (`docs/adr/0004-reader-extensions.md`), etap 3 (pisarz `xmlwriter`) 2026-11-27
+  (`docs/adr/0005-writer.md`); dowody w `docs/testing.md`; **następny krok: etap 4** (drzewo), po potwierdzeniu
+  przez właściciela pytań 6, 7 i 13;
 - pytania 1–3 są rozstrzygnięte (ADR 0002: repozytorium publiczne od v0.1.0, deklaracje przestrzeni nazw
   w tokenie, zapis powrotny zachowuje treść, nie bajty), więc etapy 0–2 nie mają blokad decyzyjnych; pozostałe
   pytania (`docs/adr/open-questions.md`) rozstrzygamy w etapach, z rekomendacją;

@@ -4,7 +4,7 @@ Every number in the README files of this repository that compares goxmlgo with s
 file says what was measured, on what input, with which versions, on which machine and with which commands, so the
 measurement can be repeated by anyone. Raw results are in [`results/`](results/).
 
-Status: the reader is measured (stages 1 and 2, 2026-11-26; the published numbers are from the stage 2 code). The sections for the writer (stage 3) and for the pipeline
+Status: the reader is measured (stages 1 and 2, 2026-11-26; the published numbers are from the stage 2 code) and so is the writer (stage 3, 2026-11-27). The sections for the pipeline
 and the tree (stage 5) are templates. A number is published only when all of its section is filled in.
 
 ## Rules
@@ -93,8 +93,9 @@ from it, the fastest and the slowest round, and the allocations of one more read
 goxmlgo divided by the speed of goxsdgo v0.3.0 on the same document; K7 requires at least 0.95 for every
 document, and the tool exits with status 1 below that.
 
-**Result** of 2026-11-26 ([`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt)): 1.22 on the JPK-like
-document and 1.19 on the WordprocessingML-like one.
+**Result** of 2026-11-27 ([`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt), working tree of stage
+3): 1.24 on the JPK-like document and 1.20 on the WordprocessingML-like one (1.22 and 1.19 on the commit of stage
+2, `96c7949`).
 
 The same module has `TestSameAsGoxsdgo` (`go -C tools/bench test ./...`), which reads every file of the corpus and
 of the fetched W3C suite with both readers and requires the same tokens and the same error; the one deliberate
@@ -102,8 +103,37 @@ difference is listed in [`differences.md`](differences.md).
 
 ## Writer
 
-To be filled in at stage 3: throughput of reader → writer on the reference document, allocations, and, if a
-comparison with `encoding/xml` (`Encoder`) is published, its settings and what it does not check.
+**Round trip (criterion K2).** `go test ./xmlwriter -run TestRoundTrip -v`. Input: the 13 documents of
+`testdata/corpus` and every case of the W3C suite in scope whose type is not `not-wf` and which the reader accepts
+(775 documents; cases of XML 1.0 are read and written without namespace processing, cases of Namespaces 1.0 with
+it, as in the conformance test). For each document the test reads it, writes the tokens with `WriteToken`, reads
+the output, and requires the same stream of tokens under the definition in [`design.md`](design.md) (kinds, names
+with prefixes, namespace declarations, attributes, data, CDATA, white-space and empty-element flags; not
+positions, not the DOCTYPE token); it then writes the output again and requires the same bytes. A failure is any
+difference or any error of the writer. The ratchet `testdata/w3c/roundtrip.ratchet` keeps the number from falling.
+Result of 2026-11-27: 13 of 13 and 775 of 775.
+
+**Output read by encoding/xml.** `go test ./xmlwriter -run TestStdlibWriter -v`. The output of the writer for the
+same documents is read by `encoding/xml` (`Decoder`, default settings) and compared with what xmlreader reads from
+the source: expanded names, attribute values, text (adjacent character data joined, because encoding/xml does not
+tell CDATA sections from text), comments and PIs. Documents that xmlreader does not read with namespace processing
+are left out, and documents that encoding/xml rejects are counted separately: its name characters are those of the
+earlier editions of XML 1.0. Result of 2026-11-27: 789 documents, 767 the same, 13 rejected by encoding/xml, 9
+left out, no difference in a document both read.
+
+**Pass-through speed.** The same tool, run and statistics as the reader comparison above
+(`tools/bench`, [`results/reader-vs-goxsdgo.txt`](results/reader-vs-goxsdgo.txt)), with two more candidates that
+read the document and write it at once to `io.Discard`: `xmlreader` → `xmlwriter` (`Next`, `WriteToken`, `Close`,
+default options) and `encoding/xml` `Decoder` → `Encoder` (`RawToken`, `EncodeToken`, `Flush`, default settings).
+The two do not do the same work: xmlwriter checks every name, character and namespace binding and keeps prefixes,
+CDATA sections and empty-element tags; `Encoder` rewrites namespace prefixes and checks less
+([`differences.md`](differences.md)). Result of 2026-11-27 (working tree of stage 3, to be repeated on its
+commit): 159 MB/s on the JPK-like document and 82 MB/s on the WordprocessingML-like one, that is 0.62 and 0.67 of
+the speed of the reader alone and 1.85 and 1.22 times the speed of the encoding/xml pass-through.
+
+**Allocations.** `go test ./xmlwriter -run TestWriterAllocations -v`: a document written with calls allocates
+nothing after warm-up at two sizes, and the pass-through allocates no more than the reader alone on the same
+document.
 
 ## Tree and streaming memory
 

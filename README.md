@@ -4,22 +4,23 @@ XML in pure Go, written from the W3C recommendations (XML 1.0 Fifth Edition, Nam
 a streaming reader, a streaming writer and an editable in-memory tree that share one token type. No cgo, no
 dependencies outside the Go standard library.
 
-Status: the reader is here ([`xmlreader`](xmlreader/README.md), with a comparison with `encoding/xml`), with
-`Skip`, `Reset` and namespace declarations in the token: it was
-moved from [`goxsdgo/xmlreader`](https://github.com/polestorm/goxsdgo/tree/main/xmlreader) v0.3.0 with the same API
-and the same behaviour ([`docs/provenance.md`](docs/provenance.md)). The writer and the tree are planned
-([`docs/roadmap.md`](docs/roadmap.md)).
+Status: the reader and the writer are here. The reader ([`xmlreader`](xmlreader/README.md), with a comparison
+with `encoding/xml`) was moved from [`goxsdgo/xmlreader`](https://github.com/polestorm/goxsdgo/tree/main/xmlreader)
+v0.3.0 with the same API ([`docs/provenance.md`](docs/provenance.md)) and has since gained `Skip`, `Reset` and
+namespace declarations in the token. The writer (`xmlwriter`) writes calls or the tokens of a reader. The tree is
+planned ([`docs/roadmap.md`](docs/roadmap.md)).
 
 Packages:
 
 | Package | What it does |
 |---|---|
 | `xmlreader` | pull reader: every well-formedness and namespace constraint checked, line and column of every token and error, fixed error codes, limits on by default, no external entities, constant memory |
-| `xmlwriter` (planned) | streaming writer: escaping, namespace declarations, output that is always well-formed, the same bytes for the same calls |
+| `xmlwriter` | streaming writer: calls or tokens in, escaping, namespace declarations as given or added automatically, output that is always well-formed or an error with a fixed code, the same bytes for the same calls, no allocation per call |
 | `xmltree` (planned) | in-memory tree that can be changed and written back; a whole document or one subtree taken out of a stream |
 | `xmlchars` | the name character classes of XML 1.0 |
 
-Planned use, reading, changing a part and writing back in constant memory:
+Reading, filtering and writing back in constant memory works today (`Example*` in `xmlwriter`). Planned, with the
+tree, changing a part of a document:
 
 ```go
 r := xmlreader.New(in, xmlreader.Options{})
@@ -60,6 +61,12 @@ Goals:
 - **safe by default**: no network, no files, external entities never read, limits on depth, sizes and entity
   expansion;
 - **the same bytes** for the same input, on every platform.
+
+Read and written back, every document of the W3C XML Conformance Test Suite that the reader accepts (775) and every
+document of the corpus gives the same tokens, and a second pass gives the same bytes; what is deliberately not kept
+(quotes, white space inside tags, the DOCTYPE declaration) is listed in [`docs/design.md`](docs/design.md). How
+this and the speed of the pass-through are measured: [`docs/methodology.md`](docs/methodology.md), raw results in
+[`docs/results/`](docs/results/README.md).
 
 Not in scope: XML 1.1, DTD validation, XPath, XSLT, XSD validation (that is
 [goxsdgo](https://github.com/polestorm/goxsdgo)), decoding into Go structs.

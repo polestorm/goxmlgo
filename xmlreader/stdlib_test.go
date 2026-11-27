@@ -50,7 +50,7 @@ func TestStdlibConformance(t *testing.T) {
 	counts := map[string]*count{}
 	var rows []string
 	for _, ct := range loadConformance(t) {
-		if ct.excluded != "" {
+		if ct.Excluded != "" {
 			continue
 		}
 		kind := "well-formed"
@@ -64,7 +64,7 @@ func TestStdlibConformance(t *testing.T) {
 		}
 		c.in++
 		ours, _ := runConformance(ct)
-		std := stdlibAccepts(path.Join(xmlconfRoot, ct.dir, ct.URI)) == (kind == "well-formed")
+		std := stdlibAccepts(path.Join(xmlconfRoot, ct.Dir, ct.URI)) == (kind == "well-formed")
 		if ours {
 			c.ours++
 		}

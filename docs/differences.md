@@ -59,7 +59,31 @@ Czytnik (pomiar na tych samych 1 727 przypadkach: `results/xmlreader-conformance
 | kodowania wejścia | UTF-8, UTF-16, ISO-8859-1, US-ASCII | UTF-8; inne przez `CharsetReader` | 4.3.3 |
 | odwołanie do encji zewnętrznej w treści | błąd `unsupported-external-entity` | błąd (encja nieznana) | 4.4.3, 5.1 |
 
-Pisarz: wiersze dojdą w etapie 3.
+Pisarz (pomiar: `TestStdlibWriter`; szybkość w `results/reader-vs-goxsdgo.txt`, metoda w `methodology.md`):
+
+| Zachowanie | `goxmlgo/xmlwriter` | `encoding/xml` (`Encoder.EncodeToken`) | Reguła |
+|---|---|---|---|
+| znak spoza [2] Char w danych | błąd `xml-char`, nic nie zapisane | zamieniany na U+FFFD | [2] Char |
+| dane, które nie są UTF-8 | błąd `xml-encoding-invalid` | zamieniane na U+FFFD | 4.3.3 |
+| prefiksy i deklaracje przestrzeni nazw | zapisywane tak, jak podano; niezgodność jest błędem | prefiksy nadawane przez koder, deklaracje przepisywane | Namespaces 3 |
+| `<a/>` a `<a></a>` | zachowane (`EndEmpty`, `SelfClosing`) | zawsze `<a></a>` | ADR 0002 |
+| sekcje CDATA | zachowane jako sekcje | zapisywane jako tekst z odwołaniami | — |
+| drugi element główny, tekst poza korzeniem | błąd `xml-content-outside-root` | zapisane | [1] document |
+| atrybut podany dwa razy | błąd `wfc-unique-att-spec` | zapisany dwa razy | WFC: Unique Att Spec |
+| błędy | stały kod, ścieżka elementów, numer wywołania; stan pisarza bez zmian | tekst komunikatu | — |
+| limity | domyślnie włączone, równe limitom czytnika | brak | — |
+
+Wiersze o znakach, drugim korzeniu, tekście poza korzeniem, prefiksach, `<a/>` i CDATA utrwala test
+`TestStdlibEncoderDifferences` (Go 1.26.6: gdy `encoding/xml` zmieni zachowanie, test to pokaże). Liczby mierzone
+to zgodność odczytu wyjścia pisarza przez `encoding/xml` (767 z 789 dokumentów, 13 odrzuca `encoding/xml`)
+i szybkość przelotu.
+
+## Wyjątki zapisu powrotnego (K2)
+
+Brak: 775 z 775 dokumentów zestawu W3C, które czytnik przyjmuje, i 13 z 13 dokumentów korpusu wraca z zapisu
+z równym strumieniem tokenów (`TestRoundTrip`). Świadomie niezachowane części zapisu (nie treści) wymienia
+`design.md`, „Co wraca z zapisu”. Dokument, którego czytnik nie przyjmuje (porażki K1 wyżej), nie ma strumienia do
+zapisania.
 
 ## Względem `goxsdgo/xmlreader` v0.3.0 (i `goxmlgo` v0.1.0)
 
@@ -80,3 +104,14 @@ Przyczyna dwóch pierwszych: czytnik zapamiętywał pozycję w buforze wejścia,
 zawartość. Dotyczy to wydanych wersji `goxsdgo` (v0.3.0, v0.4.0). Decyzją właściciela tę jedną poprawkę przeniesiono
 także do zamrożonej kopii czytnika w `goxsdgo` (commit `140b2de`, wydanie v0.4.1 z 2026-11-26); pozostałe zmiany
 etapu 2 `goxsdgo` dostanie przez przejście na `goxmlgo` (`migration.md`).
+
+### Od v0.3.0
+
+| Zachowanie | do v0.2.0 (i `goxsdgo` v0.3.0–v0.4.1) | od v0.3.0 | Reguła |
+|---|---|---|---|
+| odwołanie do encji, która nie daje żadnego znaku przed znacznikiem (pusta, np. `<!ENTITY e "">`, albo zaczynająca się od znacznika, np. `<!ENTITY e "<b/>">`), gdy przed odwołaniem nie ma tekstu | token tekstu o pustych danych w miejscu odwołania | tokenu nie ma | XML Information Set: pusty ciąg znaków nie jest treścią; ADR 0005, pkt 12 |
+
+Powód: pustego tekstu nie da się zapisać tak, żeby wrócił, więc zapis powrotny (K2) nie mógł być pełny. Zmiana
+dotyczy 22 z 3 394 plików zestawu W3C i korpusu (`TestSameAsGoxsdgo` w `tools/bench` sprawdza plik po pliku, że
+poza tym strumień jest taki sam jak w `goxsdgo` v0.3.0) i nie zmienia drugiej postaci kanonicznej ani wyniku
+K1. Testy `goxsdgo` v0.4.1 uruchomione na czytniku po zmianie dają ten sam wynik co na v0.2.0.

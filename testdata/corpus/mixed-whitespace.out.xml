@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- REQ: XML-004. Treść mieszana, same białe znaki, CR LF i samo CR na wejściu, tabulatory. --><text>
+	Akapit z <b>pogrubieniem</b>, <i>kursywą</i>	i tabulatorem.
+  <empty>   </empty>
+  <lines>pierwszy
+drugi
+trzeci
+czwarty</lines>
+  <tail>przed<br/>po</tail> koniec
+</text>

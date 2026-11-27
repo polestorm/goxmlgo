@@ -55,7 +55,7 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 |---|---|---|---|
 | `FuzzReader` | `xmlreader` | bez paniki; czytanie się kończy; pozycje tokenów i błędów w granicach wejścia; błąd zawsze typu `*Error`. Od etapu 2: po błędzie stale ten sam błąd; strumień nie zależy od podziału wejścia na odczyty; czytnik po `Reset` daje ten sam strumień co nowy; czytanie ze `Skip` kończy się tak samo jak czytanie token po tokenie | 1, rozszerzenia od 2 |
 | `FuzzRoundTrip` | `xmlwriter` | wejście przyjęte przez czytnik: zapis bez błędu, ponowny odczyt daje równy strumień tokenów, drugi zapis te same bajty | 3 |
-| `FuzzWriter` | `xmlwriter` | dowolny ciąg wywołań: błąd ze stałym kodem albo wyjście przyjęte przez czytnik z tymi samymi wartościami | 3 |
+| `FuzzWriter` | `xmlwriter` | dowolny ciąg wywołań (tryb jawny, automatyczny, bez przestrzeni nazw, z wcięciami, z małymi limitami): każdy błąd to `*Error` z kodem i numerem wywołania; same udane wywołania dają te same bajty; wyjście zamknięte bez błędu czytnik domyślny czyta bez błędu i oddaje te same nazwy rozwinięte, wartości i dane | 3 |
 | `FuzzTree` | `xmltree` | drzewo → zapis równe strumień → zapis; ciąg operacji zmiany nie psuje wskaźników na rodzica ani dobrej formy zapisu | 4 |
 
 ## Przebiegi
@@ -63,3 +63,9 @@ niezmiennik, leży w `tree/<pakiet>/testdata/fuzz/<Fuzzer>/` i wraca do repozyto
 | Data | Commit | Host i sprzęt | Fuzzer | Czas zegarowy | Wykonania | Wynik |
 |---|---|---|---|---|---|---|
 | 2026-11-26 | `96c7949` | Synology DS224+ (Celeron J4125, 4 rdzenie), linux/amd64, kolejka `~/fuzz/queue.sh` | `FuzzReader` | zlecone 23:37, 1 425 min, 3 workery | — | w kolejce za kampaniami `gohighlightgo`, `gomermaidgo` i `goxsdgo`; wynik dopisze `tools/fuzz -import` |
+
+## Znalezione błędy
+
+| Data | Fuzzer | Błąd | Poprawka | Wejście regresji |
+|---|---|---|---|---|
+| 2026-11-27 | `FuzzWriter` (przebieg sprawdzający, lokalnie) | tryb automatyczny zapisywał deklarację przestrzeni nazw wziętej z `Name.Space` bez sprawdzenia znaków: `<a xmlns="\x0f">`, którego czytnik nie przyjmuje | nazwa przestrzeni deklarowanej przez pisarza jest sprawdzana jak podana jawnie (WR-012) | `xmlwriter/testdata/fuzz/FuzzWriter/2fc1d81895408ef0`; przypadki w `TestAutoNamespaces` |

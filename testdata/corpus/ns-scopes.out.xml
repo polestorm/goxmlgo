@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- REQ: XML-013. Przestrzenie nazw: domyślna, zmiana i wyłączenie domyślnej, ten sam prefiks dla różnych
+     przestrzeni na różnych poziomach, różne prefiksy tej samej przestrzeni, atrybuty z prefiksem, xml:space, xml:lang. --><catalog xmlns="urn:example:catalog" xmlns:a="urn:example:one" xmlns:b="urn:example:one" xml:lang="pl">
+  <item a:id="1" b:code="x" plain="p">
+    <a:name>pierwszy</a:name>
+    <b:name>ten sam typ, inny prefiks</b:name>
+  </item>
+  <group xmlns="urn:example:group" xmlns:a="urn:example:two">
+    <a:name a:kind="inner">prefiks a oznacza tu inną przestrzeń</a:name>
+    <note xmlns="" xml:space="preserve">  bez przestrzeni nazw  </note>
+    <deep><deeper xmlns:a="urn:example:one"><a:name/></deeper></deep>
+  </group>
+  <a:name xml:lang="en">back to the first binding</a:name>
+</catalog>

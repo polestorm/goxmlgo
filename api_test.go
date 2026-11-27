@@ -17,7 +17,7 @@ var update = flag.Bool("update", false, "rewrite the API snapshots api/*.txt")
 const modulePath = "github.com/polestorm/goxmlgo"
 
 // publicPackages to pakiety biblioteki; każdy ma wzorzec api/<pakiet>.txt. Nowy pakiet dopisuje się tutaj.
-var publicPackages = []string{"xmlchars", "xmlreader"}
+var publicPackages = []string{"xmlchars", "xmlreader", "xmlwriter"}
 
 // TestAPISnapshot mierzy kryterium K4: publiczne API każdego pakietu jest równe wzorcowi api/<pakiet>.txt.
 // Zmiana API wymaga `go test . -run TestAPISnapshot -update`, przeglądu różnicy i wpisu w ADR albo CHANGELOG.md.

@@ -87,6 +87,7 @@ type Token struct {
 	// without namespace processing. The same declarations as DeclaredNamespaces returns, without a copy.
 	Namespaces []Binding
 	// Data is the text (KindText), the content of a comment, or the data of a PI (without leading white space).
+	// A text token is never empty, except for an empty CDATA section.
 	Data []byte
 	// CDATA: the text comes from a CDATA section. Whitespace: the text consists of S characters ([3]) only.
 	CDATA, Whitespace bool
@@ -804,7 +805,7 @@ func (r *Reader) next(t *Token) error {
 				r.pop()
 				continue
 			}
-			if inText && r.depth > 0 {
+			if inText && r.depth > 0 && len(r.text) > 0 {
 				textToken()
 				return nil
 			}
@@ -819,7 +820,9 @@ func (r *Reader) next(t *Token) error {
 		b := r.cur.buf[r.cur.pos]
 		switch b {
 		case '<':
-			if inText && r.depth > 0 {
+			// Odwołanie do encji, która nie daje żadnego znaku przed znacznikiem (pusta albo zaczynająca się od
+			// znacznika), zaczyna tekst, ale go nie tworzy: pustego tokenu tekstu nie ma (od v0.3.0).
+			if inText && r.depth > 0 && len(r.text) > 0 {
 				textToken()
 				return nil
 			}

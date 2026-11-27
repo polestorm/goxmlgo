@@ -51,10 +51,10 @@ func testDocs(t testing.TB) []testDoc {
 	}
 	if _, err := os.Stat(path.Join(xmlconfRoot, "xmlconf.xml")); err == nil {
 		for _, ct := range loadConformance(t.(*testing.T)) {
-			if ct.excluded != "" {
+			if ct.Excluded != "" {
 				continue
 			}
-			b, err := os.ReadFile(path.Join(xmlconfRoot, ct.dir, ct.URI))
+			b, err := os.ReadFile(path.Join(xmlconfRoot, ct.Dir, ct.URI))
 			if err != nil {
 				t.Fatal(err)
 			}

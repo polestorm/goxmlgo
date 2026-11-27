@@ -1,0 +1,107 @@
+package github.com/polestorm/goxmlgo/xmlwriter
+
+const (
+	CodeEncodingInvalid     = xmlreader.CodeEncodingInvalid
+	CodeChar                = xmlreader.CodeChar
+	CodeName                = xmlreader.CodeName
+	CodeQName               = xmlreader.CodeQName
+	CodeReservedPITarget    = xmlreader.CodeReservedPITarget
+	CodeXMLDecl             = xmlreader.CodeXMLDecl
+	CodeNoRoot              = xmlreader.CodeNoRoot
+	CodeEOF                 = xmlreader.CodeEOF
+	CodeOutsideRoot         = xmlreader.CodeOutsideRoot
+	CodeCDATAEnd            = xmlreader.CodeCDATAEnd
+	CodeComment             = xmlreader.CodeComment
+	CodeElementTypeMatch    = xmlreader.CodeElementTypeMatch
+	CodeUniqueAttSpec       = xmlreader.CodeUniqueAttSpec
+	CodeAttributesUnique    = xmlreader.CodeAttributesUnique
+	CodePrefixDeclared      = xmlreader.CodePrefixDeclared
+	CodeNoPrefixUndeclaring = xmlreader.CodeNoPrefixUndeclaring
+	CodeReservedPrefixes    = xmlreader.CodeReservedPrefixes
+	CodeLimitDepth          = xmlreader.CodeLimitDepth
+	CodeLimitNameLength     = xmlreader.CodeLimitNameLength
+	CodeLimitAttributes     = xmlreader.CodeLimitAttributes
+	CodeLimitTextSize       = xmlreader.CodeLimitTextSize
+
+	CodePIData        = "xml-pi-data"
+	CodeNamespaceName = "ns-name-mismatch"
+	CodeLineBreak     = "unsupported-carriage-return"
+	CodeDoctype       = "unsupported-doctype"
+	CodeUsageClosed   = "usage-closed"
+	CodeUsageAttr     = "usage-attr"
+	CodeUsageEnd      = "usage-end"
+	CodeUsageToken    = "usage-token"
+	CodeUsageOptions  = "usage-options"
+)
+
+type Error struct {
+	Code string
+
+	Path string
+
+	Call    int
+	Message string
+}
+
+type Limits struct {
+	MaxDepth      int
+	MaxNameLength int
+	MaxAttributes int
+
+	MaxTextSize int
+}
+
+type (
+	Name    = xmlreader.Name
+	Attr    = xmlreader.Attr
+	Binding = xmlreader.Binding
+	Token   = xmlreader.Token
+)
+
+type Options struct {
+	Limits Limits
+
+	NoNamespaces bool
+
+	AutoNamespaces bool
+
+	Indent string
+
+	RejectDoctype bool
+}
+
+type Writer struct {
+	// contains filtered or unexported fields
+}
+
+func DefaultLimits() Limits
+
+func New(w io.Writer, opts Options) *Writer
+
+func (e *Error) Error() string
+
+func (w *Writer) Attr(name Name, value string) error
+
+func (w *Writer) CDATA(data string) error
+
+func (w *Writer) Close() error
+
+func (w *Writer) Comment(data string) error
+
+func (w *Writer) Declaration(standalone string) error
+
+func (w *Writer) End() error
+
+func (w *Writer) EndEmpty() error
+
+func (w *Writer) Flush() error
+
+func (w *Writer) ProcInst(target, data string) error
+
+func (w *Writer) Reset(out io.Writer, opts Options)
+
+func (w *Writer) Start(name Name, namespaces ...Binding) error
+
+func (w *Writer) Text(data string) error
+
+func (w *Writer) WriteToken(t Token) error

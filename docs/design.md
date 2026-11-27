@@ -15,8 +15,8 @@ xmlwriter  pisarz strumieniowy; przyjmuje wywołania albo Token
 xmltree    drzewo; czyta z TokenReader, pisze przez xmlwriter, samo jest TokenReader
 ```
 
-Typy wspólne zostają w `xmlreader`, bo tak wymaga zgodność źródłowa z `goxsdgo/xmlreader` v0.3.0. Osobny pakiet
-na same typy byłby możliwy tylko przez aliasy; nie widać dziś potrzeby (pytanie 7).
+Typy wspólne zostają w `xmlreader`, bo tak wymaga zgodność źródłowa z `goxsdgo/xmlreader` v0.3.0; `xmlwriter` ma
+ich aliasy (`Name`, `Attr`, `Binding`, `Token`), więc kod, który tylko pisze, nie importuje czytnika (ADR 0005).
 
 ## Jeden token, trzy role
 
@@ -46,13 +46,14 @@ Podstawa K2. Dwa strumienie tokenów są równe, gdy mają tę samą liczbę tok
 | `Name` (Space, Local, Prefix) | tak, także dla atrybutów |
 | atrybuty | kolejność, nazwy i wartości po normalizacji; `Specified` i `Type` nie (po zapisie atrybut domyślny jest jawny, a deklaracji ATTLIST nie ma) |
 | deklaracje przestrzeni nazw elementu | kolejność, prefiks, nazwa przestrzeni |
-| `Data` | tak, co do bajta |
+| `Data` | tak, co do bajta (token tekstu nigdy nie jest pusty, poza pustą sekcją CDATA: ADR 0005, pkt 12) |
 | `CDATA`, `Whitespace`, `SelfClosing` | `CDATA` i `Whitespace` tak; `SelfClosing` też (ADR 0002) |
 | pozycje (`Line`, `Column`, `EndLine`, `EndColumn`) | nie |
 | token `KindDoctype` | pomijany po obu stronach (pisarz domyślnie nie pisze DOCTYPE) |
 
 Świadomie niezachowane: bajty wejścia (cudzysłowy, odstępy w znacznikach, zapis odwołań znakowych i encji,
-kodowanie wejścia, BOM, końce wierszy CR LF), deklaracja XML poza `version` i `standalone`. Stąd reguła dla
+kodowanie wejścia, BOM, końce wierszy CR LF, białe znaki poza korzeniem), deklaracja XML poza samym faktem
+jej istnienia i `standalone` (wyjście ma zawsze `version="1.0" encoding="UTF-8"`). Stąd reguła dla
 konsumentów: fragmentu objętego podpisem nie przepisuje się przez tokeny.
 
 ## Czytnik: rozszerzenia (etap 2, wykonane; decyzje w ADR 0004)
@@ -68,35 +69,38 @@ konsumentów: fragmentu objętego podpisem nie przepisuje się przez tokeny.
 
 Wszystko jako dodatki: program napisany dla v0.1.0 kompiluje się i działa tak samo.
 
-## Pisarz (etap 3)
+## Pisarz (etap 3, wykonany; decyzje w ADR 0005)
 
 ```go
 w := xmlwriter.New(out, xmlwriter.Options{})
-w.Declaration("1.0", "")            // opcjonalnie
-w.Start(xmlwriter.Name{...})        // albo StartNS z deklaracjami
+w.Declaration("")                                   // opcjonalnie; "yes" albo "no" dodaje standalone
+w.Start(name, xmlwriter.Binding{Prefix: "p", URI: ns}) // deklaracje przestrzeni nazw elementu podaje Start
 w.Attr(name, value)
 w.Text(data) / w.CDATA(data) / w.Comment(data) / w.ProcInst(target, data)
-w.End()
-w.WriteToken(tok)                   // przelot z czytnika
-w.Close()                           // błąd, gdy zostały otwarte elementy; opróżnia bufor
+w.End()                                             // </a>; w.EndEmpty() zaraz po Start i Attr daje <a/>
+w.WriteToken(tok)                                   // przelot z czytnika
+w.Close()                                           // błąd, gdy zostały otwarte elementy; opróżnia bufor
 ```
 
 Zasady:
 
 - **wyjście zawsze dobrze uformowane.** Pisarz sprawdza to, co czytnik by odrzucił: nazwy ([5] Name, QName), znaki
   ([2] Char), jeden korzeń, pary znaczników, powtórzony atrybut, prefiks bez deklaracji w zakresie, `--`
-  w komentarzu, `]]>` w CDATA, cel PI `xml`. Naruszenie to `*xmlwriter.Error` ze stałym kodem; nic nie jest
-  usuwane ani zamieniane po cichu;
+  w komentarzu, `]]>` w CDATA, cel PI `xml`. Naruszenie to `*xmlwriter.Error` ze stałym kodem (tam, gdzie reguła
+  jest ta sama, kodem czytnika); nic nie jest usuwane ani zamieniane po cichu, a nieudane wywołanie niczego nie
+  zapisuje i nie zmienia stanu pisarza;
 - **escapowanie jednoznaczne**: w tekście `&`, `<`, `>` i CR (`&#13;`); w wartości atrybutu `&`, `<`, `"` oraz TAB,
   LF i CR jako odwołania znakowe, żeby normalizacja przy odczycie (3.3.3) ich nie zamieniła na spacje. Atrybuty
-  zawsze w cudzysłowie `"`;
-- **dwa tryby przestrzeni nazw**: jawny (deklaracje podaje wywołujący albo token; tryb przelotu) i automatyczny
-  (pisarz sam deklaruje brakujące przestrzenie w miejscu pierwszego użycia, z prefiksami nadawanymi w ustalonej
-  kolejności). Automatyczny służy generowaniu dokumentów i zapisowi przeniesionych węzłów drzewa;
+  zawsze w cudzysłowie `"`. Czego nie da się oddać (CR w komentarzu, PI i CDATA), jest błędem;
+- **dwa tryby przestrzeni nazw**: jawny (deklaracje podaje wywołujący albo token; `Name.Space` musi zgadzać się
+  z wiązaniem prefiksu) i automatyczny (`AutoNamespaces`: pisarz sam deklaruje brakujące przestrzenie w miejscu
+  pierwszego użycia, z prefiksem z nazwy albo kolejnym z `ns1`, `ns2`, …). Automatyczny służy generowaniu
+  dokumentów i zapisowi przeniesionych węzłów drzewa;
 - **powtarzalność**: żadnych map w drodze do wyjścia; ten sam ciąg wywołań to te same bajty;
-- **bez alokacji na token**, bufor wyjścia o stałym rozmiarze; pamięć zależy od głębokości, nie od rozmiaru;
-- UTF-8 bez BOM; końce wierszy takie, jakie podał wywołujący; wcięcia tylko jako opcja, domyślnie wyłączona
-  (pytanie 6), bo zmieniają treść mieszaną.
+- **bez alokacji na wywołanie**, bufor wyjścia o stałym rozmiarze (32 KiB); pamięć zależy od głębokości, nie od
+  rozmiaru;
+- UTF-8 bez BOM; końce wierszy takie, jakie podał wywołujący; wcięcia tylko jako opcja (`Indent`), domyślnie
+  wyłączona, bo zmieniają treść mieszaną.
 
 ## Drzewo (etap 4)
 

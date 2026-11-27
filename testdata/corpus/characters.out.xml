@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- REQ: XML-005 XML-007 XML-008. Odwołania znakowe, encje wbudowane, znaki spoza BMP, polskie litery w nazwach,
+     znaki TAB, LF, CR w wartościach atrybutów (dosłowne i jako odwołania). --><zamówienie numer="ZAM/7" opis="a&#9;b&#10;c&#13;d" dosłowne="x y z">
+  <pozycja ilość="2" cena-jedn="10,50">Żółta gęś &amp; jaźń &lt;tanio&gt; "cudzysłów" 'apostrof'</pozycja>
+  <znaki>żółw 😀 🚀 中文 &#13;koniec</znaki>
+  <łąka źdźbło="ß→∞"/>
+</zamówienie>

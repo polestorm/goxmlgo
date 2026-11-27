@@ -2,6 +2,22 @@
 
 All release tags of this repository are signed (`git tag -s`); check one with `git tag -v vX.Y.Z`.
 
+## Unreleased (to be v0.3.0)
+
+The writer.
+
+- `xmlwriter`: a streaming writer. `Start`, `Attr`, `Text`, `CDATA`, `Comment`, `ProcInst`, `End`, `EndEmpty`
+  write a document call by call; `WriteToken` writes the tokens of a reader, so reader → writer is a pass-through
+  in constant memory. The output is well-formed or the call fails with a fixed code (`docs/errors.md`) and
+  writes nothing; characters, names and namespace bindings are checked, never repaired.
+- Namespaces as given, or declared by the writer where they are first used (`Options.AutoNamespaces`);
+  indentation as an option (`Options.Indent`); limits with the defaults of the reader.
+- Round trip: every document of the W3C XML Conformance Test Suite that the reader accepts (775) and of the corpus
+  reads, writes and reads back to the same tokens, and a second write gives the same bytes.
+- Changed in `xmlreader`: a reference to an entity that gives no character before a tag (an empty entity, or one
+  that starts with a tag) no longer produces a text token with empty data. A text token is now never empty,
+  except for an empty CDATA section. See `docs/differences.md`.
+
 ## v0.2.0 (2026-11-26)
 
 Additions to the reader; a program written for v0.1.0 compiles and behaves as before.

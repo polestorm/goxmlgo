@@ -41,7 +41,13 @@ odrzucany jako `xml-eof`. Opis i poprawka: `differences.md`, ADR 0004 pkt 9. Dec
 przeniesiono do zamrożonej kopii jako wyjątek (`goxsdgo` commit `140b2de`, wydanie v0.4.1 z 2026-11-26);
 to jedyna zmiana czytnika w `goxsdgo` po przeniesieniu.
 
-## Etap 6a: `goxsdgo` (po v0.1.0)
+## Etap 6a: `goxsdgo` (na v0.2.0)
+
+Przełączenie od razu na v0.2.0, nie na v0.1.0: v0.1.0 nie ma poprawki deklaracji XML, którą `goxsdgo` ma od
+v0.4.1, więc byłoby cofnięciem. Sprawdzone 2026-11-27 na kopii `goxsdgo` v0.4.1 z publicznym modułem v0.2.0: po
+zamianie importów (7 plików `xmlreader`, 9 plików `xmlchars`) kod buduje się bez innych zmian i 1 127 testów
+przechodzi; nie przechodzą dwa testy księgowe, które czytają źródła usuniętego czytnika (`TestRequirementsCovered`:
+XML-001…018 i DT-019; `TestCatalogMatchesSource`: kody czytnika). Oba porządkuje sesja `goxsdgo`.
 
 - `go.mod`: `require github.com/polestorm/goxmlgo`; reguła „zero zależności” w `CLAUDE.md`, README i CI zmienia się
   na „jedyna zależność to `goxmlgo`”; nowy ADR w `goxsdgo`;
@@ -57,7 +63,7 @@ Do rozważenia przy okazji, jako osobne decyzje `goxsdgo`: walidator przyjmując
 drzewa albo wyniku filtra) i walidator jako źródło tokenów (odczyt z walidacją w jednym przejściu); `Skip` dla
 treści z symbolu wieloznacznego `skip`.
 
-## Etap 6a: `goxadesgo` (po v0.1.0)
+## Etap 6a: `goxadesgo` (na v0.2.0)
 
 - `go.mod`: `goxmlgo` zamiast `goxsdgo` (o ile nie używa walidacji XSD); import czytnika zamieniony;
 - miara: wszystkie testy `goxadesgo` przechodzą.

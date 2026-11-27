@@ -1,5 +1,6 @@
 // Command bench mierzy czytnik goxmlgo wobec czytnika goxsdgo v0.3.0 (kryterium K7: nie wolniejszy niż 0,95×)
-// na tych samych dokumentach, w tym samym przebiegu, na przemian. Metoda: docs/methodology.md.
+// na tych samych dokumentach, w tym samym przebiegu, na przemian, a od etapu 3 także przelot czytnik → pisarz
+// goxmlgo i, dla porównania, przelot Decoder → Encoder z encoding/xml. Metoda: docs/methodology.md.
 //
 // Użycie (z katalogu głównego repozytorium):
 //
@@ -12,6 +13,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/xml"
 	"flag"
 	"fmt"
 	"io"
@@ -24,6 +26,7 @@ import (
 
 	"github.com/polestorm/goxmlgo/internal/testkit"
 	newreader "github.com/polestorm/goxmlgo/xmlreader"
+	"github.com/polestorm/goxmlgo/xmlwriter"
 	oldreader "github.com/polestorm/goxsdgo/xmlreader"
 )
 
@@ -60,6 +63,43 @@ var candidates = []candidate{
 	}},
 }
 
+// passThrough to kandydaci przelotu: każdy czyta dokument i zapisuje go od razu do io.Discard. Liczba tokenów
+// nie jest porównywana między nimi (encoding/xml dzieli tekst inaczej).
+var passThrough = []candidate{
+	{"goxmlgo reader+writer", func(data []byte) (int, error) {
+		r := newreader.New(bytes.NewReader(data), newreader.Options{})
+		w := xmlwriter.New(io.Discard, xmlwriter.Options{})
+		for n := 0; ; n++ {
+			t, err := r.Next()
+			if err == io.EOF {
+				return n, w.Close()
+			}
+			if err != nil {
+				return n, err
+			}
+			if err := w.WriteToken(t); err != nil {
+				return n, err
+			}
+		}
+	}},
+	{"encoding/xml Decoder+Encoder", func(data []byte) (int, error) {
+		d := xml.NewDecoder(bytes.NewReader(data))
+		e := xml.NewEncoder(io.Discard)
+		for n := 0; ; n++ {
+			t, err := d.RawToken()
+			if err == io.EOF {
+				return n, e.Flush()
+			}
+			if err != nil {
+				return n, err
+			}
+			if err := e.EncodeToken(t); err != nil {
+				return n, err
+			}
+		}
+	}},
+}
+
 type document struct {
 	name string
 	gen  func() io.Reader
@@ -84,6 +124,7 @@ func main() {
 	fmt.Fprintf(&b, "# %s %s/%s, %d CPU, one goroutine\n", runtime.Version(), runtime.GOOS, runtime.GOARCH, runtime.NumCPU())
 	fmt.Fprintf(&b, "# %s\n", machine())
 	fmt.Fprintf(&b, "# per document: median of %d rounds, candidates alternate within a round; ratio = goxmlgo MB/s / goxsdgo MB/s; K7 needs >= %.2f\n", *rounds, threshold)
+	fmt.Fprintf(&b, "# pass-through candidates read the document and write it to io.Discard; encoding/xml uses RawToken and EncodeToken\n")
 	fmt.Fprintf(&b, "document\tbytes\ttokens\tcandidate\tmedian_ms\tMB/s\tmin_ms\tmax_ms\tallocs\tbytes_allocated\n")
 
 	failed := false
@@ -93,6 +134,7 @@ func main() {
 		if err != nil {
 			fail(err)
 		}
+		candidates := append(append([]candidate(nil), candidates...), passThrough...)
 		times := make([][]time.Duration, len(candidates))
 		tokens := make([]int, len(candidates))
 		for round := -1; round < *rounds; round++ { // runda -1 to rozgrzewka, nie jest liczona
@@ -128,6 +170,8 @@ func main() {
 			verdict, failed = "BELOW THE THRESHOLD", true
 		}
 		ratios = append(ratios, fmt.Sprintf("# ratio %s: %.3f (%s)", doc.name, ratio, verdict))
+		ratios = append(ratios, fmt.Sprintf("# pass-through %s: goxmlgo %.1f MB/s, %.2f of its reader alone, %.2f of encoding/xml Decoder+Encoder",
+			doc.name, speed[2], speed[2]/speed[1], speed[2]/speed[3]))
 	}
 	b.WriteString(strings.Join(ratios, "\n") + "\n")
 	fmt.Print(b.String())

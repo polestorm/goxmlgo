@@ -1,0 +1,3 @@
+# Round trip on W3C XML Conformance (TestRoundTrip, go test ./xmlwriter -update).
+# in scope 775, passing 775
+# mode: failing

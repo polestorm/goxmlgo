@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- REQ: XML-009. Komentarz przed korzeniem --><?przed-korzeniem dane instrukcji ?><doc>
+  <![CDATA[<nie-znacznik> & nie-encja ]] > ]]><![CDATA[]]>
+  <!-- komentarz z - myślnikami i <znacznikiem> -->
+  <?cel?><?cel z danymi i ?znakiem zapytania?>
+  <code>if (a &lt; b) <![CDATA[{ return a && b; }]]> koniec</code>
+</doc><!-- komentarz po korzeniu --><?po-korzeniu?>

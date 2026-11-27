@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- REQ: XML-010 XML-011 XML-012 XML-018. Podzbiór wewnętrzny: encje, wartości domyślne i typy atrybutów, notacja. --><list>
+  <entry xmlns:x="urn:example:default-ns" id="e1" kind="a" note="domyślna Przykładowa Spółka">Przykładowa Spółka</entry>
+  <entry xmlns:x="urn:example:default-ns" id="e2" ref="e1" kind="b" tokens="jeden dwa" img="logo" x:extra="1" note="domyślna Przykładowa Spółka">Przykładowa Spółka <em>z o.o.</em> i tekst</entry>
+  <entry xmlns:x="urn:example:default-ns" id="e3" note="własna" kind="a">po &lt;em&gt;</entry>
+</list>
