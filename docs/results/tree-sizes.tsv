@@ -1,5 +1,5 @@
 # go -C tools/compare test . -run TestSizes -sizes-out ../../docs/results/tree-sizes.tsv
-# goxmlgo: 09636db (with uncommitted changes); candidates: github.com/antchfx/xmlquery v1.5.2, github.com/beevik/etree v1.8.1, encoding/xml of go1.26.6 (go.sum of tools/compare)
+# goxmlgo: b2267ba; candidates: github.com/antchfx/xmlquery v1.5.2, github.com/beevik/etree v1.8.1, encoding/xml of go1.26.6 (go.sum of tools/compare)
 # go1.26.6 darwin/arm64, CGO_ENABLED=0, go build -trimpath -ldflags="-s -w"; the program reads a document from standard input into a tree and writes the tree to standard output (tools/compare/sizeprog); the base program copies standard input to standard output: 1488274 bytes
 candidate	modules_required	packages_outside_std	lines_of_code	program_bytes	added_bytes
 goxmlgo xmltree	0	4	6227	1927378	439104
