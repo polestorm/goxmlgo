@@ -15,12 +15,11 @@ ręczna poprawka.
 | `tree-conformance.tsv` | ci sami kandydaci na 1 727 przypadkach W3C w zakresie: ile dobrze uformowanych przyjmują, ile źle uformowanych odrzucają | `go -C tools/compare test . -run TestCandidatesConformance -conformance-out ../../docs/results/tree-conformance.tsv` |
 | `transfer-goxsdgo-tests.txt` | dowód 4 przeniesienia czytnika: testy `goxsdgo` przed zamianą importu na `goxmlgo` i po niej | opis w nagłówku pliku |
 
-`reader-vs-goxsdgo.txt` z 2026-11-27 pochodzi z commitu etapu 3 (`247615e`). Od `e415926` narzędzie dopisuje też werdykt
+`reader-vs-goxsdgo.txt` do v0.4.0 pochodził z commitu etapu 3 (`247615e`). Od `e415926` narzędzie dopisuje też werdykt
 progu przelotu (ADR 0005, pkt 13); kod biblioteki od `247615e` się nie zmienił, a przebieg na `e415926` odbył się na
 obciążonej maszynie (liczby bezwzględne o ok. 20% niższe, stosunki 0,64 i 0,67 czytnika, 2,01× i 1,22× `encoding/xml`,
 oba progi spełnione), więc zapisany zostaje przebieg z `247615e`. `xmlreader-bench.txt` pochodzi z drzewa po
 etapie 2 sprzed pierwszego commitu.
 
-`streaming-memory.txt`, `tree-vs-others.txt` i `tree-conformance.tsv` z 2026-11-27 powstały z drzewa roboczego
-etapu 5 (kod biblioteki jak w v0.4.0) na maszynie obciążonej innymi zadaniami; po commicie etapu pomiary
-powtarzamy tymi samymi poleceniami.
+Wszystkie pliki z 2026-11-27 poza `xmlreader-bench.txt` i `transfer-goxsdgo-tests.txt` pochodzą z commitu `445e58e`
+(kod biblioteki jak w v0.4.0), z jednej sesji pomiarów.

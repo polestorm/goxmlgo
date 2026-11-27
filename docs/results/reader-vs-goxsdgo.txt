@@ -1,21 +1,21 @@
 # go -C tools/bench run . -root ../.. -rounds 15
-# date: 2026-11-27T07:20Z
-# goxmlgo: 247615e
+# date: 2026-11-27T11:04Z
+# goxmlgo: 445e58e
 # goxsdgo: v0.3.0 (module dependency of tools/bench, go.sum)
 # go1.26.6 darwin/arm64, 10 CPU, one goroutine
 # machine: Apple M4, 27.0.1, Darwin 27.0.0
 # per document: median of 15 rounds, candidates alternate within a round; ratio = goxmlgo MB/s / goxsdgo MB/s; K7 needs >= 0.95
-# pass-through candidates read the document and write it to io.Discard; encoding/xml uses RawToken and EncodeToken
+# pass-through candidates read the document and write it to io.Discard; encoding/xml uses RawToken and EncodeToken; K7 needs >= 0.55 of the reader alone and >= 1.00 of encoding/xml
 document	bytes	tokens	candidate	median_ms	MB/s	min_ms	max_ms	allocs	bytes_allocated
-GenJPK(20000)	8781376	540016	goxsdgo v0.3.0	40.48	216.9	38.88	41.79	66	147840
-GenJPK(20000)	8781376	540016	goxmlgo	32.97	266.3	32.20	33.96	67	148048
-GenJPK(20000)	8781376	540016	goxmlgo reader+writer	53.60	163.8	51.56	54.81	85	181560
-GenJPK(20000)	8781376	540019	encoding/xml Decoder+Encoder	97.90	89.7	95.73	99.57	900063	28647272
-GenWordML(30000)	9308048	720008	goxsdgo v0.3.0	89.44	104.1	88.16	90.24	180079	1348920
-GenWordML(30000)	9308048	720008	goxmlgo	74.72	124.6	74.34	75.52	180082	1349288
-GenWordML(30000)	9308048	720008	goxmlgo reader+writer	111.83	83.2	110.25	113.19	180105	1383200
-GenWordML(30000)	9308048	720011	encoding/xml Decoder+Encoder	134.12	69.4	132.61	135.92	1920061	49927656
-# ratio GenJPK(20000): 1.228 (ok)
-# pass-through GenJPK(20000): goxmlgo 163.8 MB/s, 0.62 of its reader alone, 1.83 of encoding/xml Decoder+Encoder
-# ratio GenWordML(30000): 1.197 (ok)
-# pass-through GenWordML(30000): goxmlgo 83.2 MB/s, 0.67 of its reader alone, 1.20 of encoding/xml Decoder+Encoder
+GenJPK(20000)	8781376	540016	goxsdgo v0.3.0	42.63	206.0	42.08	44.19	65	147824
+GenJPK(20000)	8781376	540016	goxmlgo	34.38	255.4	34.14	34.78	68	148064
+GenJPK(20000)	8781376	540016	goxmlgo reader+writer	55.55	158.1	55.15	55.90	85	181560
+GenJPK(20000)	8781376	540019	encoding/xml Decoder+Encoder	102.42	85.7	100.34	105.24	900064	28647368
+GenWordML(30000)	9308048	720008	goxsdgo v0.3.0	91.16	102.1	90.59	94.00	180079	1348920
+GenWordML(30000)	9308048	720008	goxmlgo	76.61	121.5	75.91	78.69	180083	1349304
+GenWordML(30000)	9308048	720008	goxmlgo reader+writer	114.08	81.6	113.51	115.58	180105	1383200
+GenWordML(30000)	9308048	720011	encoding/xml Decoder+Encoder	138.37	67.3	135.68	139.79	1920062	49927784
+# ratio GenJPK(20000): 1.240 (ok)
+# pass-through GenJPK(20000): goxmlgo 158.1 MB/s, 0.62 of its reader alone, 1.84 of encoding/xml Decoder+Encoder (ok)
+# ratio GenWordML(30000): 1.190 (ok)
+# pass-through GenWordML(30000): goxmlgo 81.6 MB/s, 0.67 of its reader alone, 1.21 of encoding/xml Decoder+Encoder (ok)

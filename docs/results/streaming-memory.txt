@@ -1,9 +1,9 @@
 # GOXMLGO_STREAM_MB=1024 go test . -run '^TestStreamingMemory$' -count=1 -v
-# date: 2026-11-27T10:49Z
-# goxmlgo: d45fa04 with uncommitted changes (the test itself is new; library code as in v0.4.0)
+# date: 2026-11-27T11:04Z
+# goxmlgo: 445e58e
 # go1.26.6 darwin/arm64, Apple M4, macOS 27.0.1
 === RUN   TestStreamingMemory
-    stream_test.go:363: pass-through of 1030 MB (2445881 rows): 1080478088 bytes written, peak heap 1.20 MB, memory obtained from the system by the test process 18.0 MB
---- PASS: TestStreamingMemory (16.17s)
+    stream_test.go:363: pass-through of 1030 MB (2445881 rows): 1080478088 bytes written, peak heap 1.17 MB, memory obtained from the system by the test process 13.7 MB
+--- PASS: TestStreamingMemory (9.46s)
 PASS
-ok  	github.com/polestorm/goxmlgo	16.317s
+ok  	github.com/polestorm/goxmlgo	9.702s

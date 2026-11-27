@@ -50,25 +50,27 @@ nie zmienia; etap dodaje testy, narzędzia i pomiary.
    i że dla danych niezaufanych trzeba go obniżyć. Koszt prefiksów automatycznych pisarza ogranicza
    `MaxNamespaces` (256); bez zmian.
 
-## Pomiary (2026-11-27, drzewo robocze na `d45fa04`; Apple M4, Go 1.26.6, maszyna obciążona innymi zadaniami)
+## Pomiary (2026-11-27, commit `445e58e`; Apple M4, Go 1.26.6)
 
-- K7, przelot 1 GB: 1030 MB wejścia, szczyt sterty 1,2 MB, pamięć procesu 18 MB, 16 s
+- K7, przelot 1 GB: 1030 MB wejścia, szczyt sterty 1,2 MB, pamięć procesu 14 MB
   (`../results/streaming-memory.txt`).
 - Wyspa na każdym wierszu dokumentu: szczyt sterty 1,2 MB dla 20 tys. i dla 80 tys. wierszy (`TestIsland`).
 - Drzewo wobec innych bibliotek (`../results/tree-vs-others.txt`, `../results/tree-conformance.tsv`):
 
   | | `xmltree` | `etree` | `xmlquery` |
   |---|---|---|---|
-  | budowa, styl JPK | 113 MB/s | 49 MB/s | 33 MB/s |
-  | budowa, styl WordML | 60 MB/s | 45 MB/s | 27 MB/s |
-  | zapis, styl JPK / WordML | 333 / 198 MB/s | 333 / 192 MB/s | 145 / 70 MB/s |
+  | budowa, styl JPK | 189 MB/s | 84 MB/s | 57 MB/s |
+  | budowa, styl WordML | 100 MB/s | 74 MB/s | 45 MB/s |
+  | zapis, styl JPK / WordML | 565 / 327 MB/s | 570 / 297 MB/s | 219 / 115 MB/s |
   | alokacje budowy, styl JPK | 1 557 | 1 660 102 | 2 980 122 |
   | pamięć drzewa, styl JPK / WordML | 6,8× / 11,5× dokumentu | 4,3× / 6,5× | 6,7× / 8,4× |
   | dobrze uformowane przyjęte (z 776) | 775 | 712 | 711 |
   | źle uformowane odrzucone (z 951) | 951 | 410 | 432 |
 
-  Liczby bezwzględne są niższe niż w benchmarkach pakietu (maszyna była obciążona); kolejność kandydatów
-  i stosunki są stabilne. Pomiar do powtórzenia na commicie.
+  Pierwszy przebieg, z drzewa roboczego na obciążonej maszynie, dał liczby bezwzględne o ok. 40% niższe przy tych
+  samych stosunkach między kandydatami.
+- K7 czytnika i przelotu na tym samym commicie (`../results/reader-vs-goxsdgo.txt`): czytnik 1,24× i 1,19×
+  czytnika `goxsdgo` v0.3.0; przelot 158 i 82 MB/s, czyli 0,62 i 0,67 czytnika oraz 1,84× i 1,21× `encoding/xml`.
 - Fuzzing: 40 minut na czystym commicie v0.4.0, 76 mln wykonań, bez błędu (`../fuzzing.md`); do K5 brakuje
   ok. 23 godzin.
 

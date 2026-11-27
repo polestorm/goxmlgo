@@ -8,7 +8,7 @@ Hardening; no change to the library code or its API since v0.4.0.
 
 - Tests and examples of the stream patterns: a filter between a reader and a writer, and an island (one element
   built as a tree in the middle of a pass-through) (`Example_filter`, `Example_island`).
-- Measured: 1 GB from the reader to the writer in 18 MB of process memory, 1.2 MB of heap
+- Measured: 1 GB from the reader to the writer in 14 MB of process memory, 1.2 MB of heap
   (`docs/results/streaming-memory.txt`).
 - Tests of determinism (10 runs, input split in any way) and of parallel use of separate readers, writers and
   trees.
